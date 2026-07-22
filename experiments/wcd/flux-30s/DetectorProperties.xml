@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<detectorProperties>
+  <!-- Geometría completa y explícita del WCD de esta campaña. -->
+  <tankRadius unit="cm">105</tankRadius>
+  <tankHeight unit="cm">90</tankHeight>
+  <tankThickness unit="mm">15</tankThickness>
+  <useTyvek>1</useTyvek>
+</detectorProperties>

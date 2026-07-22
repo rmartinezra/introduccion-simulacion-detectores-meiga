@@ -1,0 +1,40 @@
+{
+  "name": "bga-wcd-flux-30s",
+  "description": "Flujo ARTI de secundarios en Bucaramanga inyectado sobre el WCD escolar",
+  "duration_s": 30.0,
+  "input_file": "input/bga_30s.shw",
+  "injection_area": {
+    "mode": "eCircle",
+    "radius_m": 1.5,
+    "height_m": 2.0
+  },
+  "simulation": {
+    "mode": "eFast",
+    "physics_list": "QGSP_BERT_HP",
+    "random_seed": 2026072230,
+    "check_overlaps": false,
+    "verbosity": 0
+  },
+  "visualization": {
+    "enabled": true,
+    "format": "VRML2FILE",
+    "output_file": "visualization.wrl",
+    "scenario": "all",
+    "include_trajectories": false,
+    "files_per_run": 1
+  },
+  "output": {
+    "compress": true,
+    "save_input": true,
+    "save_energy": true,
+    "save_charge": true,
+    "save_pe_time_distribution": true,
+    "save_component_pe_time_distribution": false
+  },
+  "analysis": {
+    "trigger_threshold_pe": 1,
+    "acquisition_window_ns": 500.0,
+    "time_bin_ns": 1.0,
+    "prompt_windows_ns": [10.0, 25.0, 50.0, 100.0]
+  }
+}

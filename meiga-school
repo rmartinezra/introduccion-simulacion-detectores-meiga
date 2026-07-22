@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+
+usage() {
+  cat <<'EOF'
+MEIGA School
+
+Uso:
+  ./meiga-school doctor
+  ./meiga-school setup
+  ./meiga-school run wcd-30s [opciones]
+  ./meiga-school run wcd-5min [opciones]
+
+Empiece con `./meiga-school run wcd-30s --smoke 60`.
+EOF
+}
+
+command="${1:-help}"
+case "$command" in
+  doctor)
+    exec "$ROOT/scripts/check-requirements.sh"
+    ;;
+  setup)
+    exec "$ROOT/scripts/setup-python.sh"
+    ;;
+  run)
+    campaign="${2:-}"
+    shift 2 || true
+    case "$campaign" in
+      wcd-30s)
+        exec "$ROOT/scripts/run-wcd-campaign.sh" --experiment "$ROOT/experiments/wcd/flux-30s" "$@"
+        ;;
+      wcd-5min)
+        exec "$ROOT/scripts/run-wcd-campaign.sh" --experiment "$ROOT/experiments/wcd/bariloche-5min" "$@"
+        ;;
+      *) echo "[ERROR] Campaña desconocida: $campaign" >&2; usage >&2; exit 2 ;;
+    esac
+    ;;
+  help|-h|--help) usage ;;
+  *) echo "[ERROR] Comando desconocido: $command" >&2; usage >&2; exit 2 ;;
+esac

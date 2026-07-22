@@ -4,7 +4,9 @@ Curso práctico para aprender a configurar, ejecutar, interpretar y extender sim
 
 ## Estado
 
-Repositorio en diseño inicial. La primera etapa convierte el entorno MEIGA existente en una plataforma reproducible, segura e intuitiva antes de publicar las actividades del curso.
+La plataforma reproducible está operativa. Las campañas WCD de 30 s y 5 min
+incluyen entradas ARTI locales, configuración autocontenida, semillas explícitas,
+ejecución mediante Docker desde WSL y el mismo análisis físico e instrumental.
 
 ## Alcance
 
@@ -47,10 +49,42 @@ Al finalizar, el estudiante podrá:
 analysis/       Herramientas unificadas de análisis
 container/      Construcción y pruebas de la imagen MEIGA
 docs/           Diseño, conceptos y referencias
+experiments/    Campañas autocontenidas con entradas, JSON y XML
 modules/        Material pedagógico y actividades
+results/        Salidas locales reproducibles (excluidas de Git)
 scripts/        Instalación, diagnóstico y ejecución segura
 tests/          Pruebas de configuración, análisis y contenedor
 ```
+
+## Inicio rápido
+
+Desde WSL, en la raíz del repositorio:
+
+```bash
+./meiga-school doctor
+./meiga-school setup
+./meiga-school run wcd-30s --smoke 60
+```
+
+El último comando prepara el flujo, ejecuta `G4WCDSimulator` dentro de
+`meiga_school`, valida la salida y produce tablas, un informe, 23 figuras PNG
+de 300 dpi, 23 PDF vectoriales y una única escena `visualization.wrl`.
+
+Corridas completas:
+
+```bash
+./meiga-school run wcd-30s
+./meiga-school run wcd-5min
+```
+
+El analizador [analyze_wcd.py](analysis/wcd/analyze_wcd.py) es único para las
+dos campañas. Usa etiquetas y nombres de archivo en inglés y crea, para cada
+observable dependiente de la componente, una vista combinada y otra en paneles
+electromagnético, muónico y hadrónico.
+
+Consulte la [campaña de 30 s](experiments/wcd/flux-30s/README.md), la
+[campaña de 5 min](experiments/wcd/bariloche-5min/README.md) y los
+[requisitos para estudiantes](docs/student-requirements.md).
 
 ## Principios del proyecto
 

@@ -1,13 +1,12 @@
 # Scripts
 
-Los scripts de este directorio deberán ser seguros e idempotentes.
+La interfaz recomendada es `./meiga-school`; evita que el estudiante tenga que
+recordar rutas o nombres de scripts.
 
-Separación prevista:
+- `check-requirements.sh`: verifica WSL/Linux, Docker, contenedor, Python y recursos.
+- `setup-python.sh`: crea `.venv` e instala las versiones del análisis.
+- `run-wcd-campaign.sh`: ejecutor genérico para cualquier `campaign.json`.
+- `ejecutar-wcd-30s.sh`: alias compatible para material anterior.
 
-- `check-environment.sh`: diagnóstico de WSL/Linux, Docker, recursos y permisos;
-- `install-docker.sh`: instalación opcional y no destructiva;
-- `start-course.sh`: creación o arranque del contenedor del curso;
-- `smoke-test.sh`: comprobación de las tres aplicaciones;
-- `clean-results.sh`: limpieza limitada a resultados generados por el curso.
-
-La desinstalación deberá ser un proceso separado, explícito y documentado.
+Todas las corridas quedan en `results/runs/<run-id>/`, nunca sobrescriben una
+corrida previa y generan exactamente un `visualization.wrl`.

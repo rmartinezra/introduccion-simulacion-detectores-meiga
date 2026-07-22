@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<detectorProperties>
+  <tankRadius unit="m">1.05</tankRadius>
+  <tankHeight unit="m">0.90</tankHeight>
+  <tankThickness unit="mm">15.0</tankThickness>
+  <useTyvek>1</useTyvek>
+</detectorProperties>
