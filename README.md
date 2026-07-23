@@ -66,6 +66,28 @@ results/runs/<run-id>/
 └── plots/        figuras PNG y PDF
 ```
 
+### Ejemplos de resultados
+
+El análisis reproducible de una corrida WCD de 30 segundos genera, entre otras,
+las siguientes figuras. Los rótulos se mantienen en inglés para facilitar su
+uso directo en informes y artículos.
+
+**Composición del flujo y contribución al espectro de carga**
+
+![Incident flux, detector response and charge contribution by shower component](docs/images/wcd/wcd_flux_composition.png)
+
+**Correlación entre energía depositada y carga detectada**
+
+![Deposited energy versus photoelectron yield for the electromagnetic, muonic and hadronic components](docs/images/wcd/wcd_energy_vs_charge.png)
+
+**Perfil temporal, cola de luz tardía y ventana de adquisición**
+
+![Mean pulse profile, late-light survival and acquisition gate](docs/images/wcd/wcd_time_response.png)
+
+Estas son tres de las 23 figuras PNG y PDF que produce automáticamente
+`./meiga-school run wcd-30s`. Cada estudiante obtiene su propia copia dentro de
+`results/runs/<run-id>/plots/`.
+
 ### 4. Verificar la instalación
 
 ```bash
