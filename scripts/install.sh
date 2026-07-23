@@ -4,7 +4,7 @@ set -Eeuo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
 
-IMAGE="${MEIGA_IMAGE:-rmartinezmaple/meiga-school:3.2-g4gro}"
+IMAGE="${MEIGA_IMAGE:-rmartinezmaple/meiga-school:3.3-g4gro}"
 CONTAINER_NAME="${MEIGA_CONTAINER:-meiga_school}"
 BUILD_JOBS="${MEIGA_BUILD_JOBS:-2}"
 IMAGE_MODE="auto"
@@ -18,7 +18,7 @@ Uso: ./meiga-school install [opciones]
 Instala el entorno Python, prepara la imagen y crea/inicia el contenedor.
 
 Opciones:
-  --image REFERENCIA   Imagen (default: rmartinezmaple/meiga-school:3.2-g4gro).
+  --image REFERENCIA   Imagen (default: rmartinezmaple/meiga-school:3.3-g4gro).
   --container NOMBRE   Nombre del contenedor (default: meiga_school).
   --jobs N             Núcleos para compilar Geant4/MEIGA (default: 2).
   --pull               Exige descargar --image; no usa el respaldo local.
@@ -133,7 +133,7 @@ if docker container inspect "$CONTAINER_NAME" >/dev/null 2>&1; then
   if [[ "$container_image_id" != "$requested_image_id" ]]; then
     echo "[ERROR] El contenedor '$CONTAINER_NAME' pertenece a otra versión de la imagen." >&2
     echo "        Se conservó intacto. Use, por ejemplo:" >&2
-    echo "        ./meiga-school install --container ${CONTAINER_NAME}_3_2" >&2
+    echo "        ./meiga-school install --container ${CONTAINER_NAME}_new" >&2
     exit 1
   fi
   echo "[INFO] Reutilizando el contenedor existente: $CONTAINER_NAME"

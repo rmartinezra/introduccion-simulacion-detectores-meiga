@@ -3,7 +3,7 @@ set -u
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
-IMAGE="${MEIGA_IMAGE:-rmartinezmaple/meiga-school:3.2-g4gro}"
+IMAGE="${MEIGA_IMAGE:-rmartinezmaple/meiga-school:3.3-g4gro}"
 CONTAINER_NAME="${MEIGA_CONTAINER:-meiga_school}"
 VENV_PYTHON="$PROJECT_ROOT/.venv/bin/python"
 
