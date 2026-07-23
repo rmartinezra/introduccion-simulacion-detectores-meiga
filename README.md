@@ -50,6 +50,7 @@ analysis/       Herramientas unificadas de análisis
 container/      Construcción y pruebas de la imagen MEIGA
 docs/           Diseño, conceptos y referencias
 experiments/    Campañas autocontenidas con entradas, JSON y XML
+external-apps/  Aplicaciones externas aisladas y sin cambios científicos
 modules/        Material pedagógico y actividades
 results/        Salidas locales reproducibles (excluidas de Git)
 scripts/        Instalación, diagnóstico y ejecución segura
@@ -85,6 +86,14 @@ electromagnético, muónico y hadrónico.
 Consulte la [campaña de 30 s](experiments/wcd/flux-30s/README.md), la
 [campaña de 5 min](experiments/wcd/bariloche-5min/README.md) y los
 [requisitos para estudiantes](docs/student-requirements.md).
+
+## Aplicación externa G4GRO
+
+La imagen incluye además G4GRO como aplicación opcional de un colaborador.
+Se conserva el archivo original sin modificaciones y se construye contra una
+copia privada de MEIGA, de modo que sus materiales y lista física no afecten
+las tres aplicaciones del curso. Consulte cómo ejecutarla, editar sus `.cc` y
+recompilarla en la [guía de G4GRO](external-apps/g4gro/README.md).
 
 ## Principios del proyecto
 
