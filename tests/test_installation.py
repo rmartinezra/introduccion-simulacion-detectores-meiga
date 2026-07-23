@@ -68,6 +68,24 @@ class InstallationTests(unittest.TestCase):
             with self.subTest(explanation=explanation):
                 self.assertIn(explanation, readme)
 
+    def test_readme_documents_prerequisite_installation(self) -> None:
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        expected_instructions = (
+            "8 GiB de RAM",
+            "15 GiB libres",
+            "wsl --install -d Ubuntu",
+            "Use the WSL 2 based engine",
+            "sudo apt install -y git python3 python3-venv",
+            "sudo systemctl enable --now docker",
+            'sudo usermod -aG docker "$USER"',
+            "docker info",
+            "docs.docker.com/engine/install/ubuntu/",
+            "docs.docker.com/engine/install/debian/",
+        )
+        for instruction in expected_instructions:
+            with self.subTest(instruction=instruction):
+                self.assertIn(instruction, readme)
+
     def test_readme_result_gallery_assets_exist(self) -> None:
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
         gallery = ROOT / "docs" / "images" / "wcd"
