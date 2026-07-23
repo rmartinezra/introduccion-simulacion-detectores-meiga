@@ -51,6 +51,21 @@ class InstallationTests(unittest.TestCase):
         self.assertLess(install_position, run_position)
         self.assertIn("results/runs/<run-id>/", first_lines)
 
+    def test_readme_result_gallery_assets_exist(self) -> None:
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        gallery = ROOT / "docs" / "images" / "wcd"
+        expected = (
+            "wcd_flux_composition.png",
+            "wcd_energy_vs_charge.png",
+            "wcd_time_response.png",
+        )
+        for filename in expected:
+            with self.subTest(filename=filename):
+                image = gallery / filename
+                self.assertTrue(image.is_file())
+                self.assertGreater(image.stat().st_size, 50_000)
+                self.assertIn(f"docs/images/wcd/{filename}", readme)
+
     def test_dockerfile_is_standalone_and_stays_running(self) -> None:
         dockerfile = (ROOT / "container" / "Dockerfile").read_text(encoding="utf-8")
         self.assertIn("FROM ubuntu:22.04", dockerfile)
