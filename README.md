@@ -34,6 +34,12 @@ construye Geant4 10.7.4 y MEIGA desde los archivos versionados.
 
 No es necesario activar manualmente `.venv`.
 
+Para exigir la descarga desde Docker Hub sin intentar una compilación local:
+
+```bash
+./meiga-school install --pull
+```
+
 ### 3. Ejecutar WCD y el análisis
 
 La prueba recomendada usa 60 partículas:
@@ -68,6 +74,30 @@ results/runs/<run-id>/
 
 El diagnóstico identifica la distribución, Python, Docker, la imagen, el
 contenedor y los recursos disponibles.
+
+## Descarga manual con Docker
+
+Si solo desea preparar el contenedor manualmente:
+
+```bash
+docker pull rmartinezmaple/meiga-school:3.2-g4gro
+docker run -d \
+  --name meiga_school \
+  rmartinezmaple/meiga-school:3.2-g4gro
+```
+
+Compruebe que está activo y que contiene el WCD:
+
+```bash
+docker ps --filter name=meiga_school
+docker exec meiga_school \
+  test -x /opt/meiga-school/G4WCDSimulator/G4WCDSimulator
+```
+
+La imagen también está publicada como
+[`rmartinezmaple/meiga-school:latest`](https://hub.docker.com/r/rmartinezmaple/meiga-school).
+Para producir resultados y gráficas se recomienda conservar este repositorio:
+`./meiga-school` coordina el contenedor y el análisis Python.
 
 ## Comandos frecuentes
 
