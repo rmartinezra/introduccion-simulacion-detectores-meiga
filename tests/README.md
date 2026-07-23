@@ -13,3 +13,7 @@ La estrategia de pruebas cubrirá:
 La campaña WCD incluye `test_wcd_campaign.py`, que verifica el conteo y la
 clasificación del flujo, el muestreo estratificado usado por `--smoke` y los
 observables temporales básicos.
+
+`test_installation.py` comprueba el inicio rápido, la sintaxis Bash, la
+construcción autónoma del contenedor, la integridad de la instantánea MEIGA, el
+uso automático de `.venv` y que el instalador no elimine recursos Docker.

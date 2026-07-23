@@ -8,12 +8,14 @@ usage() {
 MEIGA School
 
 Uso:
+  ./meiga-school install [opciones]
   ./meiga-school doctor
-  ./meiga-school setup
   ./meiga-school run wcd-30s [opciones]
   ./meiga-school run wcd-5min [opciones]
 
-Empiece con `./meiga-school run wcd-30s --smoke 60`.
+Inicio recomendado:
+  ./meiga-school install
+  ./meiga-school run wcd-30s --smoke 60
 EOF
 }
 
@@ -22,8 +24,9 @@ case "$command" in
   doctor)
     exec "$ROOT/scripts/check-requirements.sh"
     ;;
-  setup)
-    exec "$ROOT/scripts/setup-python.sh"
+  install|setup)
+    shift
+    exec "$ROOT/scripts/install.sh" "$@"
     ;;
   run)
     campaign="${2:-}"

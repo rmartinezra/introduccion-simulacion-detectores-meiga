@@ -1,12 +1,22 @@
 # Scripts
 
-La interfaz recomendada es `./meiga-school`; evita que el estudiante tenga que
-recordar rutas o nombres de scripts.
+La interfaz pública es `./meiga-school`; los usuarios no necesitan invocar los
+scripts internos.
 
-- `check-requirements.sh`: verifica WSL/Linux, Docker, contenedor, Python y recursos.
-- `setup-python.sh`: crea `.venv` e instala las versiones del análisis.
-- `run-wcd-campaign.sh`: ejecutor genérico para cualquier `campaign.json`.
-- `ejecutar-wcd-30s.sh`: alias compatible para material anterior.
+- `install.sh`: valida Linux/WSL y Docker, instala `.venv`, construye o descarga
+  la imagen y crea/inicia el contenedor sin borrar recursos existentes.
+- `check-requirements.sh`: diagnostica plataforma, Python, Docker, imagen,
+  contenedor, memoria, CPU y disco.
+- `setup-python.sh`: crea `.venv` con las versiones científicas fijadas.
+- `run-wcd-campaign.sh`: prepara, simula y analiza cualquier `campaign.json`.
+- `ejecutar-wcd-30s.sh`: alias compatible con material anterior.
 
-Todas las corridas quedan en `results/runs/<run-id>/`, nunca sobrescriben una
-corrida previa y generan exactamente un `visualization.wrl`.
+Inicio normal:
+
+```bash
+./meiga-school install
+./meiga-school run wcd-30s --smoke 60
+```
+
+Cada corrida queda en `results/runs/<run-id>/`, nunca sobrescribe otra corrida
+y genera exactamente un `visualization.wrl`.

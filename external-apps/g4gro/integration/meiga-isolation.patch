@@ -1,0 +1,41 @@
+diff --git a/Applications/CMakeLists.txt b/Applications/CMakeLists.txt
+--- a/Applications/CMakeLists.txt
++++ b/Applications/CMakeLists.txt
+@@ -8,0 +9 @@
++add_subdirectory(G4GROSimulator)
+diff --git a/G4Models/Materials.h b/G4Models/Materials.h
+--- a/G4Models/Materials.h
++++ b/G4Models/Materials.h
+@@ -38,0 +39,6 @@
++	static G4Element* elAr;
++	static G4Element* elK;
++	static G4Element* elMg;
++	static G4Element* elS;
++	static G4Element* elP;
++	static G4Element* elLi;
+@@ -57,0 +64 @@
++	static G4Material* Airvacuum;
+@@ -82,0 +90,16 @@
++
++	// Materials required by the isolated G4GRO application.
++	static G4Material* SoilBS;
++	static G4Material* SoilBH1;
++	static G4Material* SoilBH10;
++	static G4Material* SoilBH20;
++	static G4Material* SoilBH30;
++	static G4Material* SoilBH40;
++	static G4Material* SoilBH50;
++	static G4Material* SoilBH60;
++	static G4Material* SoilN;
++	static G4Material* SoilK;
++	static G4Material* SoilP;
++	static G4Material* H3BO3;
++	static G4Material* SO4;
++	static G4Material* Salmuera;
+diff --git a/Applications/G4GROSimulator/G4GROSimulator.cc b/Applications/G4GROSimulator/G4GROSimulator.cc
+--- a/Applications/G4GROSimulator/G4GROSimulator.cc
++++ b/Applications/G4GROSimulator/G4GROSimulator.cc
+@@ -188 +188,2 @@
+-	auto fRunManager = G4RunManagerFactory::CreateRunManager();
++	auto fRunManager =
++		G4RunManagerFactory::CreateRunManager(G4RunManagerType::Serial);

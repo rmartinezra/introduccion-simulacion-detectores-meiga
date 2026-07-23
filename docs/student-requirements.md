@@ -3,53 +3,55 @@
 ## Plataforma mínima
 
 - Windows 10/11 de 64 bits con WSL2, o Linux de 64 bits.
-- Ubuntu 22.04 o 24.04 dentro de WSL2.
-- Docker Desktop con integración para la distribución Ubuntu, o Docker Engine
-  nativo en Linux.
-- 4 núcleos de CPU, 8 GiB de RAM y 15 GiB libres en disco.
+- Docker Desktop con integración WSL2, o Docker Engine nativo.
+- Bash, Git y Python 3.10 o posterior.
+- 4 núcleos, 8 GiB de RAM y 15 GiB libres.
+
+Se admiten Ubuntu, Debian, Fedora/RHEL, Arch Linux, openSUSE y distribuciones
+equivalentes. El sistema anfitrión no necesita Geant4, CMake ni Boost.
 
 ## Configuración recomendada
 
-- 8 núcleos de CPU, 16 GiB de RAM y 30 GiB libres.
-- Guardar el repositorio dentro del sistema de archivos de WSL (`~/...`) para
-  obtener mejor rendimiento que bajo `/mnt/c/...`.
-- Ubuntu 24.04 y Docker Desktop actualizados.
+- 8 núcleos, 16 GiB de RAM y 30 GiB libres.
+- En WSL, guardar el repositorio dentro de `~/...` y no en `/mnt/c/...`.
+- Usar dos trabajos de compilación con 8 GiB y cuatro con 16 GiB o más.
 
-No se requiere GPU ni tarjeta NVIDIA.
+No se requiere GPU.
 
-## Programas
+## Instalación
 
-Dentro de Ubuntu/WSL:
-
-```bash
-sudo apt update
-sudo apt install -y git python3 python3-venv
-```
-
-La imagen/contenedor `meiga_school` debe estar instalada por el docente. Las
-dependencias del análisis (`numpy==1.26.4` y `matplotlib==3.6.3`) se instalan
-con:
+Después de instalar Docker, Git y Python:
 
 ```bash
-./meiga-school setup
+git clone https://github.com/rmartinezra/introduccion-simulacion-detectores-meiga.git
+cd introduccion-simulacion-detectores-meiga
+./meiga-school install
 ```
 
-## Verificación y primera corrida
+El comando instala NumPy 2.2.6 y Matplotlib 3.10.3 dentro de `.venv`; no
+modifica el Python del sistema. La imagen de simulación se descarga de Docker
+Hub; no es necesario compilar Geant4 en el equipo del estudiante.
+
+Consulte [installation.md](installation.md) para instrucciones por
+distribución.
+
+## Primera corrida
 
 ```bash
 ./meiga-school doctor
 ./meiga-school run wcd-30s --smoke 60
 ```
 
-La prueba corta debe crear una carpeta bajo `results/runs/` con:
+La salida debe contener:
 
-- salida comprimida de MEIGA;
-- un solo archivo `visualization.wrl`;
+- salida MEIGA comprimida;
+- una única visualización `visualization.wrl`;
 - tablas y resumen del análisis;
-- 23 figuras PNG de 300 dpi y sus 23 versiones PDF vectoriales.
+- 23 figuras PNG de 300 dpi;
+- las mismas 23 figuras como PDF vectorial.
 
-## Recursos para las corridas largas
+## Corridas largas
 
-La campaña de 30 s usa 34 258 partículas. La campaña opcional de 5 min usa
-196 768 partículas y puede tardar decenas de minutos. Para esta última se
-recomiendan 16 GiB de RAM y al menos 6 núcleos disponibles.
+La campaña de 30 segundos usa 34 258 partículas. La campaña opcional de cinco
+minutos usa 196 768 partículas y puede tardar decenas de minutos. Para esta
+última se recomiendan 16 GiB de RAM y al menos seis núcleos disponibles.

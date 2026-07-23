@@ -1,0 +1,5 @@
+diff --git a/Framework/ConfigManager/DefaultProperties.h.in b/Framework/ConfigManager/DefaultProperties.h.in
+--- a/Framework/ConfigManager/DefaultProperties.h.in
++++ b/Framework/ConfigManager/DefaultProperties.h.in
+@@ -30,0 +31 @@
++	bool   gUseTyvek;
