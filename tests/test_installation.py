@@ -52,10 +52,10 @@ class InstallationTests(unittest.TestCase):
         self.assertLess(install_position, run_position)
         self.assertIn("results/runs/<run-id>/", readme)
 
-    def test_readme_explains_docker_for_first_time_students(self) -> None:
+    def test_readme_documents_the_container_workflow(self) -> None:
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
         expected_explanations = (
-            "nunca ha utilizado Docker",
+            "Cómo se organiza el entorno",
             "Imagen Docker",
             "Contenedor",
             "docker info",
