@@ -55,15 +55,82 @@ Cerrar la terminal no elimina la imagen, el contenedor ni los resultados.
 
 ### 1. Prepare el computador
 
-- Linux de 64 bits o Windows con WSL2.
-- Docker Engine en Linux o Docker Desktop con integración WSL2.
-- Git, Bash y Python 3.10 o posterior.
-- 8 GiB de RAM y 15 GiB libres como mínimo.
+#### Requisitos
 
-La guía [Instalación en WSL y Linux](docs/installation.md) contiene comandos
-para Ubuntu, Debian, Fedora, Arch Linux y openSUSE.
+| Elemento | Requisito |
+|---|---|
+| Sistema | Windows 10/11 con WSL2, o una distribución Linux de 64 bits |
+| Contenedores | Docker Desktop en Windows, o Docker Engine en Linux |
+| Herramientas | Git, Bash, Python 3.10 o posterior y el módulo `venv` |
+| Memoria | 8 GiB de RAM como mínimo |
+| Almacenamiento | 15 GiB libres como mínimo |
+| Red | Conexión a Internet para la primera descarga |
+| GPU | No se requiere |
 
-Antes de clonar el curso, abra la terminal Linux o WSL y ejecute:
+No es necesario instalar Geant4, Boost, MEIGA, NumPy ni Matplotlib
+manualmente. El instalador del curso prepara estas dependencias.
+
+#### Windows 10/11 con WSL2
+
+1. Abra **PowerShell como administrador**. Este es el único comando de esta
+   sección que se ejecuta fuera de Linux:
+
+   ```powershell
+   wsl --install -d Ubuntu
+   ```
+
+   Reinicie Windows si el instalador lo solicita. La documentación oficial de
+   Microsoft contiene el procedimiento y las alternativas para sistemas que ya
+   tienen WSL: [Instalar WSL](https://learn.microsoft.com/windows/wsl/install).
+
+2. Instale
+   [Docker Desktop para Windows](https://docs.docker.com/desktop/setup/install/windows-install/)
+   y ábralo desde el menú Inicio. En Docker Desktop compruebe:
+
+   - **Settings → General → Use the WSL 2 based engine**, si la opción aparece;
+   - **Settings → Resources → WSL Integration → Ubuntu**.
+
+   Docker puede activar automáticamente el motor WSL2 y ocultar la primera
+   opción en sistemas compatibles. Consulte la
+   [guía oficial de integración con WSL2](https://docs.docker.com/desktop/features/wsl/)
+   si los menús son diferentes.
+
+   No instale un segundo Docker Engine dentro de Ubuntu cuando utilice Docker
+   Desktop. Ambos pueden entrar en conflicto.
+
+3. Abra la aplicación **Ubuntu** y ejecute:
+
+   ```bash
+   sudo apt update
+   sudo apt install -y git python3 python3-venv
+   ```
+
+   A partir de este punto, todos los comandos del curso se ejecutan en esa
+   terminal Ubuntu.
+
+#### Ubuntu o Debian instalados directamente
+
+Instale las herramientas y la versión de Docker mantenida por la distribución:
+
+```bash
+sudo apt update
+sudo apt install -y git python3 python3-venv docker.io
+sudo systemctl enable --now docker
+sudo usermod -aG docker "$USER"
+```
+
+Cierre la sesión y vuelva a entrar para aplicar el nuevo grupo. Si prefiere los
+paquetes oficiales de Docker CE, siga el procedimiento correspondiente para
+[Ubuntu](https://docs.docker.com/engine/install/ubuntu/) o
+[Debian](https://docs.docker.com/engine/install/debian/).
+
+Para Fedora, RHEL, Arch Linux y openSUSE consulte la guía
+[Instalación en WSL y Linux](docs/installation.md), que contiene los comandos
+específicos de cada gestor de paquetes.
+
+#### Verificación de los requisitos
+
+Abra la terminal Linux o WSL y ejecute:
 
 ```bash
 docker info
@@ -75,9 +142,9 @@ python3 --version
 - Git debe mostrar un número de versión.
 - Python debe ser 3.10 o posterior.
 
-Si `docker info` falla, no continúe todavía. En WSL, abra Docker Desktop y
-active **Settings → Resources → WSL Integration** para su distribución. En
-Linux, inicie Docker y configure a su usuario para utilizarlo.
+Si `docker info` falla en WSL, confirme que Docker Desktop está abierto y que
+la integración con Ubuntu está activa. Si falla en Linux nativo, cierre la
+sesión para aplicar el grupo `docker`, vuelva a entrar y repita el comando.
 
 ### 2. Descargue el repositorio
 
