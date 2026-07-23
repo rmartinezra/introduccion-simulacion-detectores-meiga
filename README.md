@@ -1,9 +1,9 @@
 # Introducción a la simulación de detectores con MEIGA
 
-Esta guía supone que el estudiante nunca ha utilizado Docker. Al terminar podrá
-simular un detector Cherenkov de agua (WCD) y generar automáticamente el
-análisis físico, las tablas y las gráficas. No necesita instalar Geant4 ni
-MEIGA directamente en su computador.
+Este repositorio permite simular un detector Cherenkov de agua (WCD) y generar
+automáticamente el análisis físico, las tablas y las gráficas. La instalación
+se ejecuta dentro de Docker, por lo que no necesita instalar Geant4 ni MEIGA
+directamente en su computador.
 
 > **Si utiliza Windows:** escriba todos los comandos de esta guía en la terminal
 > de Ubuntu o Debian de WSL, no en PowerShell ni en el símbolo del sistema.
@@ -24,7 +24,7 @@ cd introduccion-simulacion-detectores-meiga
 No agregue `docker` ni `sudo` delante de `./meiga-school`. Las siguientes
 secciones explican qué hace cada comando y qué debe observar.
 
-## Cuatro conceptos antes de comenzar
+## Cómo se organiza el entorno
 
 En este curso, la palabra *imagen* puede tener dos significados diferentes:
 una **imagen Docker** es el paquete de software del laboratorio; una imagen
@@ -111,16 +111,16 @@ El comando:
 5. comprueba que el ejecutable WCD está disponible.
 
 No necesita una cuenta de Docker Hub. La imagen instalada ocupa
-aproximadamente 2.37 GB y solo se descarga completa la primera vez. Espere hasta
-ver:
+aproximadamente 2.37 GB; Docker reutiliza las capas que ya estén descargadas.
+Espere hasta ver:
 
 ```text
 [OK] Instalación lista.
 Primera prueba: ./meiga-school run wcd-30s --smoke 60
 ```
 
-No es necesario activar `.venv`, entrar al contenedor ni aprender comandos
-Docker para realizar las prácticas.
+No es necesario activar `.venv` ni entrar al contenedor. Las prácticas se
+controlan mediante `./meiga-school`.
 
 ### 4. Compruebe la instalación
 
@@ -202,7 +202,8 @@ Estas son tres de las 23 figuras PNG y PDF que produce automáticamente
 
 ## ¿Descargar o compilar la imagen Docker?
 
-Existen las dos opciones. Si no sabe cuál escoger, use **descargar**.
+Existen las dos opciones. Para las prácticas regulares se recomienda
+**descargar**; la compilación se reserva para cambios en el código fuente.
 
 | Opción | Para quién | Qué ocurre |
 |---|---|---|
@@ -303,7 +304,7 @@ La imagen también está publicada como
 [`rmartinezmaple/meiga-school:latest`](https://hub.docker.com/r/rmartinezmaple/meiga-school),
 pero el curso fija `3.2-g4gro` para evitar cambios inesperados.
 
-## Problemas frecuentes en la primera instalación
+## Solución de problemas
 
 - **`docker: command not found`:** está en la terminal incorrecta o Docker aún
   no está instalado/integrado con WSL.
