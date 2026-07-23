@@ -6,7 +6,7 @@ ARG GEANT4_SOURCE_SHA256=602b41dfee1fa6b33b026d00c5bd940155d7e5d0b3495230a87e2a2
 ARG BUILD_JOBS=2
 
 LABEL org.opencontainers.image.title="MEIGA School"
-LABEL org.opencontainers.image.version="3.2"
+LABEL org.opencontainers.image.version="3.3"
 LABEL org.opencontainers.image.description="Self-contained MEIGA detector course with Geant4 10.7.4, WCD campaigns and isolated G4GRO"
 LABEL org.opencontainers.image.source="https://github.com/rmartinezra/introduccion-simulacion-detectores-meiga"
 
@@ -102,7 +102,11 @@ COPY experiments/wcd/bariloche-5min /opt/meiga-school/campaigns/wcd-bariloche-5m
 COPY external-apps/g4gro /tmp/g4gro
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends nlohmann-json3-dev && \
+    apt-get install -y --no-install-recommends \
+      less \
+      nano \
+      nlohmann-json3-dev \
+      vim && \
     rm -rf /var/lib/apt/lists/* && \
     sha256sum /opt/meiga-school/data/bariloche_5min.shw | \
       grep -qi '^db4f9e09a2b43898faffc7fea3446cba072777ff3cf9bb6ebe79296da56ced66 ' && \

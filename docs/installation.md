@@ -97,7 +97,7 @@ La imagen pública predeterminada es:
 ```bash
 ./meiga-school install \
   --pull \
-  --image rmartinezmaple/meiga-school:3.2-g4gro
+  --image rmartinezmaple/meiga-school:3.3-g4gro
 ```
 
 También se pueden fijar estos valores mediante `MEIGA_IMAGE`,
@@ -115,6 +115,18 @@ También se pueden fijar estos valores mediante `MEIGA_IMAGE`,
 6. verifica que el ejecutable WCD esté disponible.
 
 El proceso es idempotente y no elimina contenedores, imágenes ni resultados.
+
+## Entrar al contenedor
+
+La imagen incluye `nano`, `vim`, `vi` y `less`. Abra una terminal Bash en
+`/opt/meiga-school` con:
+
+```bash
+./meiga-school shell
+```
+
+Para salir sin detener el contenedor, ejecute `exit`. Si seleccionó otro nombre
+durante la instalación, use `./meiga-school shell --container NOMBRE`.
 
 ## Contenedor con el mismo nombre
 

@@ -10,6 +10,7 @@ MEIGA School
 Uso:
   ./meiga-school install [opciones]
   ./meiga-school doctor
+  ./meiga-school shell [--container NOMBRE]
   ./meiga-school run wcd-30s [opciones]
   ./meiga-school run wcd-5min [opciones]
 
@@ -27,6 +28,57 @@ case "$command" in
   install|setup)
     shift
     exec "$ROOT/scripts/install.sh" "$@"
+    ;;
+  shell)
+    shift
+    container_name="${MEIGA_CONTAINER:-meiga_school}"
+    while (($#)); do
+      case "$1" in
+        --container)
+          container_name="${2:?Falta NOMBRE}"
+          shift 2
+          ;;
+        -h|--help)
+          echo "Uso: ./meiga-school shell [--container NOMBRE]"
+          exit 0
+          ;;
+        *)
+          echo "[ERROR] Opción desconocida para shell: $1" >&2
+          echo "Uso: ./meiga-school shell [--container NOMBRE]" >&2
+          exit 2
+          ;;
+      esac
+    done
+
+    command -v docker >/dev/null 2>&1 || {
+      echo "[ERROR] Docker no está disponible." >&2
+      exit 1
+    }
+    docker info >/dev/null 2>&1 || {
+      echo "[ERROR] Docker no responde. Inicie Docker Desktop o Docker Engine." >&2
+      exit 1
+    }
+    docker container inspect "$container_name" >/dev/null 2>&1 || {
+      echo "[ERROR] No existe el contenedor '$container_name'." >&2
+      echo "        Ejecute primero: ./meiga-school install --pull" >&2
+      exit 1
+    }
+    if [[ "$(docker inspect -f '{{.State.Running}}' "$container_name")" != "true" ]]; then
+      echo "[INFO] Iniciando el contenedor '$container_name'..."
+      docker start "$container_name" >/dev/null
+    fi
+
+    terminal_args=(-i)
+    if [[ -t 0 && -t 1 ]]; then
+      terminal_args=(-it)
+    fi
+    echo "[INFO] Entrando a '$container_name'. Use 'exit' para regresar."
+    exec docker exec \
+      "${terminal_args[@]}" \
+      --workdir /opt/meiga-school \
+      --env "TERM=${TERM:-xterm-256color}" \
+      "$container_name" \
+      bash
     ;;
   run)
     campaign="${2:-}"

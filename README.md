@@ -173,12 +173,12 @@ El comando:
 1. crea el entorno Python local `.venv`;
 2. instala NumPy y Matplotlib para los análisis;
 3. descarga desde Docker Hub la imagen pública
-   `rmartinezmaple/meiga-school:3.2-g4gro`;
+   `rmartinezmaple/meiga-school:3.3-g4gro`;
 4. crea e inicia el contenedor `meiga_school`;
 5. comprueba que el ejecutable WCD está disponible.
 
 No necesita una cuenta de Docker Hub. La imagen instalada ocupa
-aproximadamente 2.37 GB; Docker reutiliza las capas que ya estén descargadas.
+aproximadamente 2.43 GB; Docker reutiliza las capas que ya estén descargadas.
 Espere hasta ver:
 
 ```text
@@ -188,6 +188,34 @@ Primera prueba: ./meiga-school run wcd-30s --smoke 60
 
 No es necesario activar `.venv` ni entrar al contenedor. Las prácticas se
 controlan mediante `./meiga-school`.
+
+#### Entrar al contenedor
+
+Para abrir una terminal Bash dentro de MEIGA:
+
+```bash
+./meiga-school shell
+```
+
+La terminal comienza en `/opt/meiga-school`. La imagen incluye `nano`, `vim`,
+`vi` y `less`; por ejemplo:
+
+```bash
+nano campaigns/wcd-flux-30s/DetectorProperties.xml
+vim G4WCDSimulator/source/Applications/G4WCDSimulator/G4WCDSimulator.cc
+```
+
+Use `exit` para regresar a la terminal del anfitrión. Si trabaja con un
+contenedor de nombre diferente:
+
+```bash
+./meiga-school shell --container meiga_school_local
+```
+
+Los cambios hechos dentro del contenedor sirven para pruebas rápidas, pero no
+quedan registrados en Git y se pierden al eliminar el contenedor. Para obtener
+un trabajo reproducible, edite los archivos del repositorio y reconstruya la
+imagen cuando cambie código C++.
 
 ### 4. Compruebe la instalación
 
@@ -284,7 +312,7 @@ Existen las dos opciones. Para las prácticas regulares se recomienda
 ```
 
 Esta opción no compila Geant4 en el computador del estudiante. Descarga la
-versión exacta `3.2-g4gro`, de modo que todo el grupo utiliza el mismo entorno.
+versión exacta `3.3-g4gro`, de modo que todo el grupo utiliza el mismo entorno.
 
 También existe un modo automático:
 
@@ -355,10 +383,10 @@ MEIGA_CONTAINER=meiga_school_local_v2 \
 El instalador recomendado ejecuta internamente operaciones equivalentes a:
 
 ```bash
-docker pull rmartinezmaple/meiga-school:3.2-g4gro
+docker pull rmartinezmaple/meiga-school:3.3-g4gro
 docker create \
   --name meiga_school \
-  rmartinezmaple/meiga-school:3.2-g4gro
+  rmartinezmaple/meiga-school:3.3-g4gro
 docker start meiga_school
 ```
 
@@ -369,7 +397,24 @@ contenedor y no configura el análisis. Por eso debe preferirse
 
 La imagen también está publicada como
 [`rmartinezmaple/meiga-school:latest`](https://hub.docker.com/r/rmartinezmaple/meiga-school),
-pero el curso fija `3.2-g4gro` para evitar cambios inesperados.
+pero el curso fija `3.3-g4gro` para evitar cambios inesperados.
+
+### Actualizar desde `3.2-g4gro`
+
+El instalador no reemplaza contenedores automáticamente. Esta protección evita
+perder cambios manuales. Después de copiar cualquier archivo que haya editado
+dentro del contenedor anterior, actualice así:
+
+```bash
+docker rm -f meiga_school
+docker image rm rmartinezmaple/meiga-school:3.2-g4gro
+./meiga-school install --pull
+./meiga-school doctor
+```
+
+Las corridas guardadas en `results/runs/` y el entorno `.venv` no se eliminan.
+La nueva imagen crea nuevamente `meiga_school` e incorpora los editores y el
+comando `./meiga-school shell`.
 
 ## Solución de problemas
 

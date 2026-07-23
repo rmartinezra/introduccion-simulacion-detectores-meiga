@@ -1,7 +1,7 @@
 # Contenedor autónomo
 
 `Dockerfile` construye
-`rmartinezmaple/meiga-school:3.2-g4gro` sin depender de una imagen MEIGA local.
+`rmartinezmaple/meiga-school:3.3-g4gro` sin depender de una imagen MEIGA local.
 Parte de `ubuntu:22.04` e instala:
 
 - Geant4 10.7.4 y sus conjuntos de datos;
@@ -9,6 +9,7 @@ Parte de `ubuntu:22.04` e instala:
 - Hodoscopio, Torre y WCD;
 - las campañas WCD de 30 segundos y 5 minutos;
 - G4GRO en un árbol privado;
+- `nano`, `vim`, `vi` y `less` para trabajar dentro del contenedor;
 - fuentes, CMake, `make` y `g++` para recompilar.
 
 ## Construcción
@@ -18,14 +19,14 @@ Desde la raíz:
 ```bash
 docker build \
   --file container/Dockerfile \
-  --tag rmartinezmaple/meiga-school:3.2-g4gro \
-  --tag meiga_school:3.2-g4gro \
+  --tag rmartinezmaple/meiga-school:3.3-g4gro \
+  --tag meiga_school:3.3-g4gro \
   --build-arg BUILD_JOBS=2 \
   .
 ```
 
 La primera construcción compila Geant4. Use uno o dos trabajos en equipos con
-8 GiB de RAM y hasta cuatro en equipos con 16 GiB o más.
+8 GiB de RAM y hasta ocho en equipos con suficientes núcleos y memoria.
 
 El instalador recomendado ejecuta este proceso y crea el contenedor:
 
@@ -41,7 +42,7 @@ La imagen declara `CMD ["sleep", "infinity"]`; por ello no necesita un
 ```bash
 docker create \
   --name meiga_school \
-  rmartinezmaple/meiga-school:3.2-g4gro
+  rmartinezmaple/meiga-school:3.3-g4gro
 docker start meiga_school
 ```
 
@@ -65,11 +66,16 @@ WCD y análisis desde el anfitrión:
 ./meiga-school run wcd-30s --smoke 60
 ```
 
-G4GRO dentro del contenedor:
+Terminal interactiva con los editores incluidos:
 
 ```bash
-docker exec meiga_school \
-  /opt/meiga-school/external/G4GROSimulator/run-g4gro.sh smoke my-test
+./meiga-school shell
+```
+
+Después de entrar con el comando anterior, ejecute G4GRO dentro del contenedor:
+
+```bash
+./external/G4GROSimulator/run-g4gro.sh smoke my-test
 ```
 
 Las instrucciones para modificar y recompilar G4GRO están en su

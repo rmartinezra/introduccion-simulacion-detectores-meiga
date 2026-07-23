@@ -40,7 +40,23 @@ class InstallationTests(unittest.TestCase):
             text=True,
         )
         self.assertIn("./meiga-school install", result.stdout)
+        self.assertIn("./meiga-school shell", result.stdout)
         self.assertIn("./meiga-school run wcd-30s --smoke 60", result.stdout)
+
+    def test_cli_documents_interactive_container_access(self) -> None:
+        result = subprocess.run(
+            ["bash", str(ROOT / "meiga-school"), "shell", "--help"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        self.assertIn(
+            "./meiga-school shell [--container NOMBRE]",
+            result.stdout,
+        )
+        cli = (ROOT / "meiga-school").read_text(encoding="utf-8")
+        self.assertIn("--workdir /opt/meiga-school", cli)
+        self.assertIn("docker exec", cli)
 
     def test_readme_quick_start_is_near_the_top(self) -> None:
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
@@ -61,6 +77,7 @@ class InstallationTests(unittest.TestCase):
             "docker info",
             "No necesita una cuenta de Docker Hub",
             "./meiga-school install --pull",
+            "./meiga-school shell",
             "--force-build",
             "¿Reconstruir la imagen Docker?",
         )
@@ -106,8 +123,26 @@ class InstallationTests(unittest.TestCase):
         self.assertIn("FROM ubuntu:22.04", dockerfile)
         self.assertNotIn("FROM ${BASE_IMAGE}", dockerfile)
         self.assertNotIn("meiga_school:3.0", dockerfile)
+        self.assertIn('org.opencontainers.image.version="3.3"', dockerfile)
         self.assertIn("nlohmann-json3-dev", dockerfile)
+        for editor in ("less", "nano", "vim"):
+            with self.subTest(editor=editor):
+                self.assertRegex(dockerfile, rf"(?m)^\s+{editor}(?:\s|\\)")
         self.assertIn('CMD ["sleep", "infinity"]', dockerfile)
+
+    def test_default_image_is_the_versioned_3_3_release(self) -> None:
+        expected = "rmartinezmaple/meiga-school:3.3-g4gro"
+        for path in (
+            ROOT / "scripts" / "install.sh",
+            ROOT / "scripts" / "check-requirements.sh",
+        ):
+            with self.subTest(path=path.name):
+                contents = path.read_text(encoding="utf-8")
+                self.assertIn(expected, contents)
+                self.assertNotIn(
+                    "rmartinezmaple/meiga-school:3.2-g4gro",
+                    contents,
+                )
 
     def test_applications_use_a_compatible_serial_run_manager(self) -> None:
         school_installer = (
