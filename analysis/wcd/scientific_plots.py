@@ -159,9 +159,23 @@ def plot_total_charge(rows: Sequence[dict[str, Any]], path: Path) -> None:
     axes[0].set_title(r"All injected particles ($Q=0$ included)")
     axes[0].text(0.97, 0.95, f"Zero signal: {np.mean(charge == 0):.1%}", transform=axes[0].transAxes, ha="right", va="top")
     _finish_axis(axes[0])
-    axes[1].hist(positive, bins=_positive_log_edges(positive), histtype="step", color="#B2182B", linewidth=1.6)
+    positive_edges = _positive_log_edges(positive)
+    axes[1].hist(positive, bins=positive_edges, histtype="step", color="#B2182B", linewidth=1.6)
     axes[1].set_xscale("log")
-    axes[1].set_yscale("log")
+    axes[1].set_xlim(float(positive_edges[0]), float(positive_edges[-1]))
+    if positive.size:
+        axes[1].set_yscale("log")
+    else:
+        axes[1].set_ylim(0, 1)
+        axes[1].text(
+            0.5,
+            0.5,
+            "No triggered events",
+            transform=axes[1].transAxes,
+            ha="center",
+            va="center",
+            color="#555555",
+        )
     axes[1].set_xlabel("Charge [PE]")
     axes[1].set_ylabel("Triggered events")
     axes[1].set_title(r"Triggered sample ($Q>0$)")
@@ -182,6 +196,7 @@ def _plot_component_distribution(
         component: np.asarray([float(row[field]) for row in _component_rows(rows, component) if float(row[field]) > 0])
         for component in components
     }
+    has_positive = any(array.size for array in values.values())
     edges = _positive_log_edges([value for array in values.values() for value in array])
     if facets:
         fig, axes = plt.subplots(1, len(components), figsize=(2.45 * len(components), 2.7), sharex=True, sharey=True, squeeze=False)
@@ -190,9 +205,12 @@ def _plot_component_distribution(
             axis.hist(values[component], bins=edges, histtype="step", color=COMPONENT_STYLE[component]["color"])
             axis.set_title(COMPONENT_LABEL[component])
             axis.set_xscale("log")
-            axis.set_yscale("log")
             axis.set_xlabel(xlabel)
             _finish_axis(axis, "both")
+        if has_positive:
+            axes[0, 0].set_yscale("log")
+        else:
+            axes[0, 0].set_ylim(0, 1)
         axes[0, 0].set_ylabel("Events")
     else:
         fig, axis = plt.subplots(figsize=(3.65, 3.0))
@@ -200,7 +218,19 @@ def _plot_component_distribution(
             style = COMPONENT_STYLE[component]
             axis.hist(values[component], bins=edges, histtype="step", linewidth=1.55, linestyle=style["linestyle"], color=style["color"], label=COMPONENT_LABEL[component])
         axis.set_xscale("log")
-        axis.set_yscale("log")
+        if has_positive:
+            axis.set_yscale("log")
+        else:
+            axis.set_ylim(0, 1)
+            axis.text(
+                0.5,
+                0.5,
+                "No positive values",
+                transform=axis.transAxes,
+                ha="center",
+                va="center",
+                color="#555555",
+            )
         axis.set_xlabel(xlabel)
         axis.set_ylabel("Events")
         axis.legend()
@@ -334,11 +364,30 @@ def plot_timing_total(rows: Sequence[dict[str, Any]], acquisition_window: float,
     axes[1].set_xlabel("Time after first PE [ns]")
     axes[1].set_ylabel("PE survival fraction")
     axes[1].set_title("Late-light tail")
-    if raw.size:
-        axes[2].hist(raw[raw > 0], bins=_positive_log_edges(raw[raw > 0], 70), histtype="step", color="#009E73")
+    raw_positive = raw[raw > 0]
+    if raw_positive.size:
+        raw_counts, _, _ = axes[2].hist(
+            raw_positive,
+            bins=_positive_log_edges(raw_positive, 70),
+            histtype="step",
+            color="#009E73",
+        )
     axes[2].axvline(acquisition_window, color="#D55E00", linestyle="--", label=f"Gate: {acquisition_window:g} ns")
     axes[2].set_xscale("log")
-    axes[2].set_yscale("log")
+    if raw_positive.size:
+        axes[2].set_ylim(0.8, max(1.2, float(np.max(raw_counts)) * 1.5))
+        axes[2].set_yscale("log")
+    else:
+        axes[2].set_ylim(0, 1)
+        axes[2].text(
+            0.5,
+            0.5,
+            "No PE timing samples",
+            transform=axes[2].transAxes,
+            ha="center",
+            va="center",
+            color="#555555",
+        )
     axes[2].set_xlabel("Time after injection [ns]")
     axes[2].set_ylabel("Photoelectrons")
     axes[2].set_title("Acquisition gate")
@@ -450,8 +499,23 @@ def _response_bins(rows: Sequence[dict[str, Any]], field: str, logarithmic: bool
     values = values[np.isfinite(values)]
     if logarithmic:
         values = values[values > 0]
-        return np.geomspace(max(1e-5, float(np.quantile(values, 0.001))), float(np.quantile(values, 0.999)), 38)
-    return np.linspace(float(np.quantile(values, 0.001)), float(np.quantile(values, 0.999)), 35)
+        if not values.size:
+            return np.geomspace(1e-3, 1.0, 38)
+        low = max(1e-5, float(np.quantile(values, 0.001)))
+        high = float(np.quantile(values, 0.999))
+        if high <= low:
+            low = max(1e-5, low / 2)
+            high = low * 4
+        return np.geomspace(low, high, 38)
+    if not values.size:
+        return np.linspace(0.0, 1.0, 35)
+    low = float(np.quantile(values, 0.001))
+    high = float(np.quantile(values, 0.999))
+    if high <= low:
+        span = max(1.0, abs(low) * 0.1)
+        low -= span
+        high += span
+    return np.linspace(low, high, 35)
 
 
 def plot_binned_response(
@@ -483,8 +547,20 @@ def plot_binned_response(
     for axis in dict.fromkeys(targets):
         if logarithmic:
             axis.set_xscale("log")
+        axis.set_xlim(float(edges[0]), float(edges[-1]))
         axis.set_ylim(0, 1.02)
         axis.set_xlabel(xlabel)
+        if not any(np.asarray(line.get_xdata()).size for line in axis.lines):
+            axis.text(
+                0.5,
+                0.5,
+                "Insufficient statistics\n(<20 events per bin)",
+                transform=axis.transAxes,
+                ha="center",
+                va="center",
+                color="#555555",
+                fontsize=7.2,
+            )
         _finish_axis(axis)
     targets[0].set_ylabel(r"Detection efficiency $P(Q\geq1\ \mathrm{PE})$")
     if not facets:

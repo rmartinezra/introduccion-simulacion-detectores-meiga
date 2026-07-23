@@ -10,7 +10,13 @@ readonly RUNS_DIR="$PREFIX/runs"
 readonly BASE_SOURCE="/opt/meiga-school/G4WCDSimulator/source"
 readonly INTEGRATION_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly ARCHIVE="${1:-/tmp/g4gro/Escuela.tar.gz}"
+readonly BUILD_JOBS="${BUILD_JOBS:-2}"
 readonly EXPECTED_ARCHIVE_SHA256="e8e2793fadc6ad2f25783cc075e9c66c2f21e940d251e24838baf4f306820900"
+
+[[ "$BUILD_JOBS" =~ ^[1-9][0-9]*$ ]] || {
+  echo "[ERROR] BUILD_JOBS must be a positive integer" >&2
+  exit 2
+}
 
 for command_name in cmake g++ make patch sha256sum tar; do
   command -v "$command_name" >/dev/null || {
@@ -69,7 +75,7 @@ install -m 0644 "$INTEGRATION_DIR/../README.md" \
 cmake -S "$SOURCE_DIR" -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE=Release
 cmake --build "$BUILD_DIR" \
   --target G4GROSimulator \
-  --parallel "$(nproc)"
+  --parallel "$BUILD_JOBS"
 
 test -x "$BUILD_DIR/Applications/G4GROSimulator/G4GROSimulator"
 echo "[OK] Isolated G4GRO build installed at $PREFIX"

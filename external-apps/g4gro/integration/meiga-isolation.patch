@@ -32,3 +32,10 @@ diff --git a/G4Models/Materials.h b/G4Models/Materials.h
 +	static G4Material* H3BO3;
 +	static G4Material* SO4;
 +	static G4Material* Salmuera;
+diff --git a/Applications/G4GROSimulator/G4GROSimulator.cc b/Applications/G4GROSimulator/G4GROSimulator.cc
+--- a/Applications/G4GROSimulator/G4GROSimulator.cc
++++ b/Applications/G4GROSimulator/G4GROSimulator.cc
+@@ -188 +188,2 @@
+-	auto fRunManager = G4RunManagerFactory::CreateRunManager();
++	auto fRunManager =
++		G4RunManagerFactory::CreateRunManager(G4RunManagerType::Serial);

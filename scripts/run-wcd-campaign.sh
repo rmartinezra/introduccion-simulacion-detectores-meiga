@@ -5,6 +5,7 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
 ANALYZER="$PROJECT_ROOT/analysis/wcd/analyze_wcd.py"
 RESULTS_ROOT="$PROJECT_ROOT/results/runs"
+PYTHON="${MEIGA_PYTHON:-$PROJECT_ROOT/.venv/bin/python}"
 
 EXPERIMENT=""
 CONTAINER_NAME="${MEIGA_CONTAINER:-meiga_school}"
@@ -49,15 +50,18 @@ EXPERIMENT="$(cd -- "$EXPERIMENT" && pwd)"
 [[ "$SEED" =~ ^[1-9][0-9]*$ ]] || { echo "[ERROR] --seed debe ser positivo" >&2; exit 2; }
 [[ "$MAX_PARTICLES" =~ ^[0-9]+$ ]] || { echo "[ERROR] --smoke debe ser entero" >&2; exit 2; }
 
-command -v docker >/dev/null || { echo "[ERROR] Docker no está disponible dentro de WSL" >&2; exit 1; }
-command -v python3 >/dev/null || { echo "[ERROR] Falta python3" >&2; exit 1; }
-python3 -c 'import numpy, matplotlib' >/dev/null 2>&1 || {
-  echo "[ERROR] Ejecute primero: ./meiga-school setup" >&2
+command -v docker >/dev/null || { echo "[ERROR] Docker no está disponible" >&2; exit 1; }
+if [[ ! -x "$PYTHON" ]]; then
+  PYTHON="$(command -v python3 || true)"
+fi
+[[ -n "$PYTHON" ]] || { echo "[ERROR] Falta python3" >&2; exit 1; }
+"$PYTHON" -c 'import numpy, matplotlib' >/dev/null 2>&1 || {
+  echo "[ERROR] Ejecute primero: ./meiga-school install" >&2
   exit 1
 }
 
 readarray -t metadata < <(
-  python3 - "$EXPERIMENT/campaign.json" <<'PY'
+  "$PYTHON" - "$EXPERIMENT/campaign.json" <<'PY'
 import json, re, sys
 data = json.load(open(sys.argv[1], encoding="utf-8"))
 slug = re.sub(r"[^A-Za-z0-9._-]+", "-", data["name"]).strip("-")
@@ -73,10 +77,11 @@ INJECTION_RADIUS="${metadata[2]}"
 ACQUISITION_WINDOW="${metadata[3]}"
 
 if [[ -z "$RUN_ID" ]]; then
+  timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
   if ((MAX_PARTICLES > 0)); then
-    RUN_ID="${CAMPAIGN_SLUG}-smoke-${MAX_PARTICLES}-seed-${SEED}"
+    RUN_ID="${CAMPAIGN_SLUG}-smoke-${MAX_PARTICLES}-seed-${SEED}-${timestamp}"
   else
-    RUN_ID="${CAMPAIGN_SLUG}-seed-${SEED}"
+    RUN_ID="${CAMPAIGN_SLUG}-seed-${SEED}-${timestamp}"
   fi
 fi
 [[ "$RUN_ID" =~ ^[A-Za-z0-9._-]+$ ]] || { echo "[ERROR] --run-id no es seguro" >&2; exit 2; }
@@ -112,7 +117,7 @@ done
 [[ -n "$EXECUTABLE" ]] || { echo "[ERROR] No se encontró G4WCDSimulator" >&2; exit 1; }
 
 mkdir -p "$RUN_DIR" "$ANALYSIS_DIR" "$PLOT_DIR"
-python3 "$ANALYZER" prepare --experiment "$EXPERIMENT" --run-dir "$RUN_DIR" \
+"$PYTHON" "$ANALYZER" prepare --experiment "$EXPERIMENT" --run-dir "$RUN_DIR" \
   --scenarios "$SCENARIOS" --seed "$SEED" --max-particles "$MAX_PARTICLES"
 
 CONTAINER_RUN="/tmp/meiga-school-${RUN_ID}"
@@ -137,15 +142,33 @@ done
 docker cp "$CONTAINER_NAME:$CONTAINER_RUN/." "$RUN_DIR/"
 EXECUTABLE_SHA256="$(docker exec "$CONTAINER_NAME" sha256sum "$EXECUTABLE" | awk '{print $1}')"
 
-mapfile -d '' wrl_files < <(find "$RUN_DIR/scenarios" -type f -name '*.wrl' -print0)
-if ((${#wrl_files[@]} != 1)); then
-  echo "[ERROR] Se esperaba exactamente un archivo WRL; se encontraron ${#wrl_files[@]}" >&2
+mapfile -d '' wrl_files < <(
+  find "$RUN_DIR/scenarios" -type f -name '*.wrl' -print0 | sort -z
+)
+if ((${#wrl_files[@]} == 0)); then
+  echo "[ERROR] La simulación no generó el archivo WRL esperado" >&2
   exit 1
 fi
-[[ -s "${wrl_files[0]}" ]] || { echo "[ERROR] El archivo WRL está vacío" >&2; exit 1; }
-mv -- "${wrl_files[0]}" "$RUN_DIR/visualization.wrl"
+visualization_source="${wrl_files[0]}"
+[[ -s "$visualization_source" ]] || {
+  echo "[ERROR] El archivo WRL está vacío" >&2
+  exit 1
+}
+visualization_sha256="$(sha256sum "$visualization_source" | awk '{print $1}')"
+for duplicate_wrl in "${wrl_files[@]:1}"; do
+  duplicate_sha256="$(sha256sum "$duplicate_wrl" | awk '{print $1}')"
+  if [[ "$duplicate_sha256" != "$visualization_sha256" ]]; then
+    echo "[ERROR] MEIGA generó varios WRL con contenidos diferentes" >&2
+    exit 1
+  fi
+  rm -f -- "$duplicate_wrl"
+done
+if ((${#wrl_files[@]} > 1)); then
+  echo "[INFO] Consolidando ${#wrl_files[@]} copias idénticas del WRL"
+fi
+mv -- "$visualization_source" "$RUN_DIR/visualization.wrl"
 
-python3 "$ANALYZER" analyze --run-dir "$RUN_DIR" --analysis-dir "$ANALYSIS_DIR" \
+"$PYTHON" "$ANALYZER" analyze --run-dir "$RUN_DIR" --analysis-dir "$ANALYSIS_DIR" \
   --plot-dir "$PLOT_DIR" --duration "$DURATION" --injection-radius "$INJECTION_RADIUS" \
   --acquisition-window "$ACQUISITION_WINDOW" --executable "$EXECUTABLE" \
   --executable-sha256 "$EXECUTABLE_SHA256"

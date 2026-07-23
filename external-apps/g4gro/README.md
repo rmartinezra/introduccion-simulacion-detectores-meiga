@@ -10,6 +10,8 @@ The isolated build uses:
 - the original `Materials.cc` and `G4MPhysicsList.cc` supplied in the archive;
 - a small header-only compatibility patch declaring the supplied soil and
   brine materials;
+- a localized serial run-manager selection because the supplied application
+  registers its Geant4 user actions through the sequential interface;
 - a private fix to the copied MEIGA configuration template so its generated
   header exposes the explicit Tyvek setting required by the teaching tree;
 - a separate CMake build directory and runtime directory.
