@@ -43,13 +43,30 @@ class InstallationTests(unittest.TestCase):
         self.assertIn("./meiga-school run wcd-30s --smoke 60", result.stdout)
 
     def test_readme_quick_start_is_near_the_top(self) -> None:
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
         first_lines = "\n".join(
-            (ROOT / "README.md").read_text(encoding="utf-8").splitlines()[:65]
+            readme.splitlines()[:65]
         )
         install_position = first_lines.index("./meiga-school install")
         run_position = first_lines.index("./meiga-school run wcd-30s --smoke 60")
         self.assertLess(install_position, run_position)
-        self.assertIn("results/runs/<run-id>/", first_lines)
+        self.assertIn("results/runs/<run-id>/", readme)
+
+    def test_readme_explains_docker_for_first_time_students(self) -> None:
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        expected_explanations = (
+            "nunca ha utilizado Docker",
+            "Imagen Docker",
+            "Contenedor",
+            "docker info",
+            "No necesita una cuenta de Docker Hub",
+            "./meiga-school install --pull",
+            "--force-build",
+            "¿Reconstruir la imagen Docker?",
+        )
+        for explanation in expected_explanations:
+            with self.subTest(explanation=explanation):
+                self.assertIn(explanation, readme)
 
     def test_readme_result_gallery_assets_exist(self) -> None:
         readme = (ROOT / "README.md").read_text(encoding="utf-8")

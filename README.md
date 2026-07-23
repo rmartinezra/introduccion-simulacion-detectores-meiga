@@ -1,13 +1,59 @@
 # Introducción a la simulación de detectores con MEIGA
 
-Ejecute una simulación de un detector Cherenkov de agua (WCD) y genere
-automáticamente el análisis físico, las tablas y las gráficas. No necesita
-instalar Geant4 ni MEIGA directamente en su sistema: ambos se construyen dentro
-de Docker.
+Esta guía supone que el estudiante nunca ha utilizado Docker. Al terminar podrá
+simular un detector Cherenkov de agua (WCD) y generar automáticamente el
+análisis físico, las tablas y las gráficas. No necesita instalar Geant4 ni
+MEIGA directamente en su computador.
 
-## Primera simulación WCD
+> **Si utiliza Windows:** escriba todos los comandos de esta guía en la terminal
+> de Ubuntu o Debian de WSL, no en PowerShell ni en el símbolo del sistema.
+> Docker Desktop debe estar abierto mientras trabaja.
 
-### 1. Requisitos
+## Recorrido recomendado en cinco comandos
+
+Después de instalar los requisitos, esta es la secuencia completa:
+
+```bash
+git clone https://github.com/rmartinezra/introduccion-simulacion-detectores-meiga.git
+cd introduccion-simulacion-detectores-meiga
+./meiga-school install --pull
+./meiga-school doctor
+./meiga-school run wcd-30s --smoke 60
+```
+
+No agregue `docker` ni `sudo` delante de `./meiga-school`. Las siguientes
+secciones explican qué hace cada comando y qué debe observar.
+
+## Cuatro conceptos antes de comenzar
+
+En este curso, la palabra *imagen* puede tener dos significados diferentes:
+una **imagen Docker** es el paquete de software del laboratorio; una imagen
+PNG es una **gráfica** producida por el análisis.
+
+| Concepto | Significado en este curso |
+|---|---|
+| Repositorio | Esta carpeta: contiene la guía, configuraciones, flujos y scripts. |
+| Imagen Docker | Paquete inmutable con Ubuntu, Geant4, MEIGA y los ejecutables. Se descarga una sola vez. |
+| Contenedor | Instancia de trabajo creada a partir de la imagen Docker. Se llama `meiga_school`. |
+| Resultados | Archivos guardados en `results/runs/` dentro del repositorio y visibles desde el sistema anfitrión. |
+
+El flujo es:
+
+```text
+repositorio y configuración
+          ↓
+    ./meiga-school
+          ↓
+contenedor con MEIGA  →  simulación
+          ↓
+results/runs/<run-id>/ en el computador del estudiante
+```
+
+Cerrar la terminal no elimina la imagen, el contenedor ni los resultados.
+
+## Primera simulación WCD paso a paso
+
+### 1. Prepare el computador
 
 - Linux de 64 bits o Windows con WSL2.
 - Docker Engine en Linux o Docker Desktop con integración WSL2.
@@ -17,36 +63,85 @@ de Docker.
 La guía [Instalación en WSL y Linux](docs/installation.md) contiene comandos
 para Ubuntu, Debian, Fedora, Arch Linux y openSUSE.
 
-### 2. Descargar e instalar
+Antes de clonar el curso, abra la terminal Linux o WSL y ejecute:
 
-Abra una terminal Linux o WSL:
+```bash
+docker info
+git --version
+python3 --version
+```
+
+- `docker info` debe mostrar información del servidor sin terminar en error.
+- Git debe mostrar un número de versión.
+- Python debe ser 3.10 o posterior.
+
+Si `docker info` falla, no continúe todavía. En WSL, abra Docker Desktop y
+active **Settings → Resources → WSL Integration** para su distribución. En
+Linux, inicie Docker y configure a su usuario para utilizarlo.
+
+### 2. Descargue el repositorio
+
+Ubíquese en la carpeta donde quiera conservar el curso y ejecute:
 
 ```bash
 git clone https://github.com/rmartinezra/introduccion-simulacion-detectores-meiga.git
 cd introduccion-simulacion-detectores-meiga
-./meiga-school install
 ```
 
-El instalador crea `.venv`, instala NumPy y Matplotlib, descarga la imagen
-precompilada `rmartinezmaple/meiga-school:3.2-g4gro` desde Docker Hub y deja
-iniciado el contenedor `meiga_school`. Si la descarga no está disponible,
-construye Geant4 10.7.4 y MEIGA desde los archivos versionados.
+`git clone` descarga los archivos del curso. `cd` entra en esa carpeta. Los
+comandos siguientes deben ejecutarse desde allí.
 
-No es necesario activar manualmente `.venv`.
+El repositorio es público: no necesita una cuenta de GitHub.
 
-Para exigir la descarga desde Docker Hub sin intentar una compilación local:
+### 3. Instale con la imagen precompilada
+
+Esta es la opción recomendada para todos los estudiantes:
 
 ```bash
 ./meiga-school install --pull
 ```
 
-### 3. Ejecutar WCD y el análisis
+El comando:
+
+1. crea el entorno Python local `.venv`;
+2. instala NumPy y Matplotlib para los análisis;
+3. descarga desde Docker Hub la imagen pública
+   `rmartinezmaple/meiga-school:3.2-g4gro`;
+4. crea e inicia el contenedor `meiga_school`;
+5. comprueba que el ejecutable WCD está disponible.
+
+No necesita una cuenta de Docker Hub. La imagen instalada ocupa
+aproximadamente 2.37 GB y solo se descarga completa la primera vez. Espere hasta
+ver:
+
+```text
+[OK] Instalación lista.
+Primera prueba: ./meiga-school run wcd-30s --smoke 60
+```
+
+No es necesario activar `.venv`, entrar al contenedor ni aprender comandos
+Docker para realizar las prácticas.
+
+### 4. Compruebe la instalación
+
+```bash
+./meiga-school doctor
+```
+
+El diagnóstico revisa la distribución, Python, Docker, la imagen, el
+contenedor y los recursos disponibles. Corrija cualquier línea marcada como
+error antes de continuar.
+
+### 5. Ejecute la primera simulación
 
 La prueba recomendada usa 60 partículas:
 
 ```bash
 ./meiga-school run wcd-30s --smoke 60
 ```
+
+`--smoke 60` significa “prueba corta con 60 partículas”. Sirve para comprobar
+todo el flujo sin esperar una campaña completa.
 
 Este único comando:
 
@@ -65,6 +160,23 @@ results/runs/<run-id>/
 ├── analysis/     tablas, métricas e informe reproducible
 └── plots/        figuras PNG y PDF
 ```
+
+El programa imprime el valor real de `<run-id>` al terminar. No escriba
+literalmente los símbolos `<` y `>`. Para listar primero la ejecución más
+reciente:
+
+```bash
+ls -dt results/runs/* | head -1
+```
+
+Desde WSL puede abrir la carpeta del proyecto en el Explorador de Windows:
+
+```bash
+explorer.exe .
+```
+
+Los resultados están en el computador del estudiante, no quedan encerrados
+dentro del contenedor.
 
 ### Ejemplos de resultados
 
@@ -88,38 +200,126 @@ Estas son tres de las 23 figuras PNG y PDF que produce automáticamente
 `./meiga-school run wcd-30s`. Cada estudiante obtiene su propia copia dentro de
 `results/runs/<run-id>/plots/`.
 
-### 4. Verificar la instalación
+## ¿Descargar o compilar la imagen Docker?
+
+Existen las dos opciones. Si no sabe cuál escoger, use **descargar**.
+
+| Opción | Para quién | Qué ocurre |
+|---|---|---|
+| Descargar con `--pull` | Estudiantes y docentes que realizarán las prácticas | Descarga la imagen oficial ya compilada. Es la ruta rápida y reproducible. |
+| Compilar con `--build` | Desarrolladores que modificarán C++ o la construcción | Construye Geant4, MEIGA, Hodoscopio, Torre, WCD y G4GRO dentro de Docker. |
+
+### Opción A: descargar desde Docker Hub
 
 ```bash
-./meiga-school doctor
+./meiga-school install --pull
 ```
 
-El diagnóstico identifica la distribución, Python, Docker, la imagen, el
-contenedor y los recursos disponibles.
+Esta opción no compila Geant4 en el computador del estudiante. Descarga la
+versión exacta `3.2-g4gro`, de modo que todo el grupo utiliza el mismo entorno.
 
-## Descarga manual con Docker
+También existe un modo automático:
 
-Si solo desea preparar el contenedor manualmente:
+```bash
+./meiga-school install
+```
+
+Reutiliza la imagen si ya está instalada; si no está, intenta descargarla. Solo
+si la descarga falla intenta construirla localmente. Para una clase se
+recomienda `--pull`, porque un fallo de red se informa inmediatamente y no
+inicia una compilación larga por sorpresa.
+
+### Opción B: construir desde los archivos del repositorio
+
+Esta sección es opcional. No es necesaria para cambiar JSON, XML, flujos ni
+scripts de análisis.
+
+Para crear una imagen y un contenedor locales separados de la versión oficial:
+
+```bash
+./meiga-school install \
+  --build \
+  --image meiga-school:local \
+  --container meiga_school_local \
+  --jobs 2
+```
+
+`--jobs 2` permite compilar con dos núcleos. Use `--jobs 1` si el computador
+tiene poca memoria, o un valor mayor si dispone de suficientes núcleos y RAM.
+
+Para ejecutar una simulación con ese contenedor local:
+
+```bash
+MEIGA_CONTAINER=meiga_school_local \
+  ./meiga-school run wcd-30s --smoke 60
+```
+
+Si ya existe `meiga-school:local` y necesita reconstruirla después de cambiar
+fuentes C++ o el Dockerfile, use `--force-build`. El instalador conserva el
+contenedor anterior para evitar pérdida accidental; por eso la reconstrucción
+debe recibir un nombre de contenedor nuevo:
+
+```bash
+./meiga-school install \
+  --force-build \
+  --image meiga-school:local \
+  --container meiga_school_local_v2 \
+  --jobs 2
+```
+
+Después seleccione el contenedor nuevo:
+
+```bash
+MEIGA_CONTAINER=meiga_school_local_v2 \
+  ./meiga-school run wcd-30s --smoke 60
+```
+
+| Cambio realizado | ¿Reconstruir la imagen Docker? |
+|---|---|
+| Parámetros en JSON o XML | No |
+| Archivo de flujo `.shw` | No |
+| Código del análisis Python | No |
+| Fuentes C++ `.cc`/`.hh` de MEIGA o una aplicación | Sí |
+| `container/Dockerfile` o scripts de construcción | Sí |
+
+### Comandos Docker equivalentes — referencia avanzada
+
+El instalador recomendado ejecuta internamente operaciones equivalentes a:
 
 ```bash
 docker pull rmartinezmaple/meiga-school:3.2-g4gro
-docker run -d \
+docker create \
   --name meiga_school \
   rmartinezmaple/meiga-school:3.2-g4gro
+docker start meiga_school
 ```
 
-Compruebe que está activo y que contiene el WCD:
-
-```bash
-docker ps --filter name=meiga_school
-docker exec meiga_school \
-  test -x /opt/meiga-school/G4WCDSimulator/G4WCDSimulator
-```
+No es necesario ejecutar estos comandos manualmente. Hacer solamente
+`docker pull` descarga la imagen, pero no prepara `.venv`, no crea el
+contenedor y no configura el análisis. Por eso debe preferirse
+`./meiga-school install --pull`.
 
 La imagen también está publicada como
-[`rmartinezmaple/meiga-school:latest`](https://hub.docker.com/r/rmartinezmaple/meiga-school).
-Para producir resultados y gráficas se recomienda conservar este repositorio:
-`./meiga-school` coordina el contenedor y el análisis Python.
+[`rmartinezmaple/meiga-school:latest`](https://hub.docker.com/r/rmartinezmaple/meiga-school),
+pero el curso fija `3.2-g4gro` para evitar cambios inesperados.
+
+## Problemas frecuentes en la primera instalación
+
+- **`docker: command not found`:** está en la terminal incorrecta o Docker aún
+  no está instalado/integrado con WSL.
+- **`Cannot connect to the Docker daemon`:** abra Docker Desktop en Windows; en
+  Linux, inicie el servicio Docker.
+- **`permission denied` al ejecutar `./meiga-school`:** ejecute
+  `chmod +x meiga-school scripts/*.sh` y vuelva a intentar.
+- **El contenedor pertenece a otra imagen:** use el nombre sugerido por el
+  instalador, por ejemplo `./meiga-school install --container meiga_school_3_2`.
+- **No se puede crear `.venv`:** instale `python3-venv` en Ubuntu o Debian.
+- **No hay espacio suficiente:** la descarga necesita varios GB y la
+  compilación local requiere al menos 15 GiB libres.
+
+La guía [Instalación en WSL y Linux](docs/installation.md) contiene diagnóstico
+por distribución. Si solicita ayuda, copie desde la terminal el comando
+ejecutado y el mensaje de error completo.
 
 ## Comandos frecuentes
 
