@@ -190,10 +190,36 @@ class InstallationTests(unittest.TestCase):
             encoding="utf-8"
         )
         self.assertIn('.venv/bin/python', runner)
+        self.assertNotIn('command -v python3', runner)
+        self.assertIn("verify-python-env.py", runner)
         self.assertIn('"$PYTHON" "$ANALYZER" prepare', runner)
         self.assertIn('"$PYTHON" "$ANALYZER" analyze', runner)
         self.assertIn("varios WRL con contenidos diferentes", runner)
         self.assertIn('mv -- "$visualization_source"', runner)
+
+    def test_python_requirements_are_fully_pinned_and_verified(self) -> None:
+        requirements = (
+            ROOT / "analysis" / "requirements.txt"
+        ).read_text(encoding="utf-8").splitlines()
+        dependencies = [
+            line.partition("#")[0].strip()
+            for line in requirements
+            if line.partition("#")[0].strip()
+        ]
+        self.assertGreaterEqual(len(dependencies), 10)
+        self.assertTrue(all(line.count("==") == 1 for line in dependencies))
+
+        verifier = ROOT / "scripts" / "verify-python-env.py"
+        self.assertTrue(verifier.is_file())
+        for script_name in (
+            "setup-python.sh",
+            "check-requirements.sh",
+            "run-wcd-campaign.sh",
+            "install.sh",
+        ):
+            with self.subTest(script=script_name):
+                contents = (ROOT / "scripts" / script_name).read_text(encoding="utf-8")
+                self.assertIn("verify-python-env.py", contents)
 
 
 if __name__ == "__main__":

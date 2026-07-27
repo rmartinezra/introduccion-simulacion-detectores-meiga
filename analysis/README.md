@@ -30,10 +30,11 @@ La forma recomendada es ejecutar desde WSL, en la raíz del repositorio:
 Para analizar nuevamente una salida ya generada, consulte la ayuda:
 
 ```bash
-python3 analysis/wcd/analyze_wcd.py --help
-python3 analysis/wcd/analyze_wcd.py analyze --help
-python3 analysis/wcd/analyze_wcd.py replot --help
+.venv/bin/python analysis/wcd/analyze_wcd.py --help
+.venv/bin/python analysis/wcd/analyze_wcd.py analyze --help
+.venv/bin/python analysis/wcd/analyze_wcd.py replot --help
 ```
 
 Las versiones exactas usadas en una corrida quedan registradas en su
-`manifest.json`. `requirements.txt` documenta el entorno Python de referencia.
+`manifest.json`. `requirements.txt` fija el entorno Python completo. Los scripts
+rechazan el Python global del sistema para evitar mezclar versiones.

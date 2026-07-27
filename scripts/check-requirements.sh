@@ -50,15 +50,12 @@ if command -v python3 >/dev/null 2>&1; then
 fi
 
 if [[ -x "$VENV_PYTHON" ]] && \
-  "$VENV_PYTHON" -c 'import numpy, matplotlib' >/dev/null 2>&1; then
-  versions="$(
-    "$VENV_PYTHON" -c \
-      'import matplotlib, numpy; print(f"NumPy {numpy.__version__}, Matplotlib {matplotlib.__version__}")'
-  )"
-  echo "[OK]   Python libs    $versions"
+  versions="$("$VENV_PYTHON" "$SCRIPT_DIR/verify-python-env.py" 2>/dev/null)"; then
+  echo "[OK]   Python libs    ${versions#\[OK\] }"
 else
-  echo "[WARN] Python libs    ejecute ./meiga-school install"
-  warnings=$((warnings + 1))
+  echo "[FAIL] Python libs    faltan o no coinciden con analysis/requirements.txt"
+  echo "       Ejecute ./meiga-school install para repararlas."
+  failures=$((failures + 1))
 fi
 
 if command -v docker >/dev/null 2>&1; then
