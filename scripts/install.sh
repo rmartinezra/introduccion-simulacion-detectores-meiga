@@ -157,8 +157,12 @@ if ! docker exec "$CONTAINER_NAME" \
 fi
 
 PYTHON="$PROJECT_ROOT/.venv/bin/python"
-[[ -x "$PYTHON" ]] || PYTHON="$(command -v python3)"
-"$PYTHON" -c 'import matplotlib, numpy'
+if [[ ! -x "$PYTHON" ]]; then
+  echo "[ERROR] No existe $PYTHON." >&2
+  echo "        Quite --skip-python o ejecute ./scripts/setup-python.sh." >&2
+  exit 1
+fi
+"$PYTHON" "$SCRIPT_DIR/verify-python-env.py"
 
 echo "[OK] Instalación lista."
 echo "     Primera prueba: ./meiga-school run wcd-30s --smoke 60"

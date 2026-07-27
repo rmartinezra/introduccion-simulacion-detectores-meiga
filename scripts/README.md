@@ -5,9 +5,11 @@ scripts internos.
 
 - `install.sh`: valida Linux/WSL y Docker, instala `.venv`, construye o descarga
   la imagen y crea/inicia el contenedor sin borrar recursos existentes.
-- `check-requirements.sh`: diagnostica plataforma, Python, Docker, imagen,
-  contenedor, memoria, CPU y disco.
+- `check-requirements.sh`: diagnostica plataforma, versiones Python exactas,
+  Docker, imagen, contenedor, memoria, CPU y disco.
 - `setup-python.sh`: crea `.venv` con las versiones científicas fijadas.
+- `verify-python-env.py`: impide ejecutar con dependencias ausentes o diferentes
+  de las fijadas.
 - `run-wcd-campaign.sh`: prepara, simula y analiza cualquier `campaign.json`.
 - `ejecutar-wcd-30s.sh`: alias compatible con material anterior.
 

@@ -24,11 +24,9 @@ fi
 "$VENV/bin/python" -m pip install --disable-pip-version-check --upgrade pip
 "$VENV/bin/python" -m pip install \
   --disable-pip-version-check \
+  --upgrade \
   -r "$PROJECT_ROOT/analysis/requirements.txt"
-"$VENV/bin/python" - <<'PY'
-import matplotlib
-import numpy
-print(f"[OK] NumPy {numpy.__version__}; Matplotlib {matplotlib.__version__}")
-PY
+"$VENV/bin/python" -m pip check
+"$VENV/bin/python" "$SCRIPT_DIR/verify-python-env.py"
 echo "[OK] Entorno Python instalado en $VENV"
 echo "     Los comandos ./meiga-school lo usarán automáticamente."

@@ -52,11 +52,13 @@ EXPERIMENT="$(cd -- "$EXPERIMENT" && pwd)"
 
 command -v docker >/dev/null || { echo "[ERROR] Docker no está disponible" >&2; exit 1; }
 if [[ ! -x "$PYTHON" ]]; then
-  PYTHON="$(command -v python3 || true)"
+  echo "[ERROR] No existe el entorno Python esperado: $PYTHON" >&2
+  echo "        Ejecute primero: ./meiga-school install" >&2
+  exit 1
 fi
-[[ -n "$PYTHON" ]] || { echo "[ERROR] Falta python3" >&2; exit 1; }
-"$PYTHON" -c 'import numpy, matplotlib' >/dev/null 2>&1 || {
-  echo "[ERROR] Ejecute primero: ./meiga-school install" >&2
+"$PYTHON" "$SCRIPT_DIR/verify-python-env.py" >/dev/null || {
+  echo "[ERROR] El entorno Python está incompleto o tiene versiones distintas." >&2
+  echo "        Repárelo con: ./meiga-school install" >&2
   exit 1
 }
 
