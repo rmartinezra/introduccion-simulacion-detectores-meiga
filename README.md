@@ -7,11 +7,14 @@ directamente en su computador.
 
 > **Si utiliza Windows:** escriba todos los comandos de esta guía en la terminal
 > de Ubuntu o Debian de WSL, no en PowerShell ni en el símbolo del sistema.
-> Docker Desktop debe estar abierto mientras trabaja.
+> Si eligió Docker Desktop, debe estar abierto mientras trabaja. El instalador
+> también admite Docker Engine dentro de WSL.
 
 ## Recorrido recomendado en cinco comandos
 
-Después de instalar los requisitos, esta es la secuencia completa:
+Después de instalar WSL o abrir una terminal Linux, esta es la secuencia
+completa. El tercer comando instala automáticamente las herramientas del
+sistema que falten:
 
 ```bash
 git clone https://github.com/rmartinezra/introduccion-simulacion-detectores-meiga.git
@@ -21,8 +24,9 @@ cd introduccion-simulacion-detectores-meiga
 ./meiga-school run wcd-30s --smoke 60
 ```
 
-No agregue `docker` ni `sudo` delante de `./meiga-school`. Las siguientes
-secciones explican qué hace cada comando y qué debe observar.
+No agregue `docker` ni `sudo` delante de `./meiga-school`. El instalador pedirá
+la contraseña administrativa mediante `sudo` solamente si necesita instalar
+paquetes del sistema.
 
 ## Cómo se organiza el entorno
 
@@ -60,15 +64,16 @@ Cerrar la terminal no elimina la imagen, el contenedor ni los resultados.
 | Elemento | Requisito |
 |---|---|
 | Sistema | Windows 10/11 con WSL2, o una distribución Linux de 64 bits |
-| Contenedores | Docker Desktop en Windows, o Docker Engine en Linux |
-| Herramientas | Git, Bash, Python 3.10 o posterior y el módulo `venv` |
+| Contenedores | Docker Desktop o Docker Engine; el instalador prepara Docker Engine si falta |
+| Herramientas | Bash; el instalador prepara Git, curl, Python 3.10–3.14 y `venv` |
 | Memoria | 8 GiB de RAM como mínimo |
 | Almacenamiento | 15 GiB libres como mínimo |
 | Red | Conexión a Internet para la primera descarga |
 | GPU | No se requiere |
 
-No es necesario instalar Geant4, Boost, MEIGA, NumPy ni Matplotlib
-manualmente. El instalador del curso prepara estas dependencias.
+No es necesario instalar manualmente Docker Engine, Python, Geant4, Boost,
+MEIGA, NumPy ni Matplotlib. `./meiga-school install` detecta e instala las
+dependencias que falten mediante el gestor de paquetes de la distribución.
 
 #### Windows 10/11 con WSL2
 
@@ -83,50 +88,44 @@ manualmente. El instalador del curso prepara estas dependencias.
    Microsoft contiene el procedimiento y las alternativas para sistemas que ya
    tienen WSL: [Instalar WSL](https://learn.microsoft.com/windows/wsl/install).
 
-2. Instale
-   [Docker Desktop para Windows](https://docs.docker.com/desktop/setup/install/windows-install/)
-   y ábralo desde el menú Inicio. En Docker Desktop compruebe:
-
-   - **Settings → General → Use the WSL 2 based engine**, si la opción aparece;
-   - **Settings → Resources → WSL Integration → Ubuntu**.
-
-   Docker puede activar automáticamente el motor WSL2 y ocultar la primera
-   opción en sistemas compatibles. Consulte la
-   [guía oficial de integración con WSL2](https://docs.docker.com/desktop/features/wsl/)
-   si los menús son diferentes.
-
-   No instale un segundo Docker Engine dentro de Ubuntu cuando utilice Docker
-   Desktop. Ambos pueden entrar en conflicto.
-
-3. Abra la aplicación **Ubuntu** y ejecute:
+2. Abra la aplicación **Ubuntu** y descargue este repositorio. Puede clonarlo
+   con Git o descargar el ZIP desde la página de GitHub. Git suele venir
+   instalado; si no está disponible para realizar el primer clon, ejecute una
+   sola vez:
 
    ```bash
    sudo apt update
-   sudo apt install -y git python3 python3-venv
+   sudo apt install -y git
    ```
 
-   A partir de este punto, todos los comandos del curso se ejecutan en esa
+3. Ejecute `./meiga-school install --pull`. Si Docker no existe, el comando
+   instala Docker Engine dentro de Ubuntu y lo inicia mediante systemd.
+
+   Como alternativa, puede instalar
+   [Docker Desktop para Windows](https://docs.docker.com/desktop/setup/install/windows-install/).
+   Si Docker Desktop ya está instalado, el script no instala un segundo motor:
+   reutiliza su integración WSL. Compruebe
+   **Settings → Resources → WSL Integration → Ubuntu**.
+
+   A partir de este punto, todos los comandos del curso se ejecutan en la
    terminal Ubuntu.
 
 #### Ubuntu o Debian instalados directamente
 
-Instale las herramientas y la versión de Docker mantenida por la distribución:
+Después de obtener el repositorio, ejecute directamente
+`./meiga-school install --pull`. El comando usa `apt` para instalar Git, curl,
+Python, `venv`, certificados y `docker.io` cuando sean necesarios; inicia
+Docker y habilita el acceso del usuario actual.
 
-```bash
-sudo apt update
-sudo apt install -y git python3 python3-venv docker.io
-sudo systemctl enable --now docker
-sudo usermod -aG docker "$USER"
-```
-
-Cierre la sesión y vuelva a entrar para aplicar el nuevo grupo. Si prefiere los
-paquetes oficiales de Docker CE, siga el procedimiento correspondiente para
+Si prefiere Docker CE en lugar del paquete de la distribución, consulte las
+guías oficiales para
 [Ubuntu](https://docs.docker.com/engine/install/ubuntu/) o
-[Debian](https://docs.docker.com/engine/install/debian/).
+[Debian](https://docs.docker.com/engine/install/debian/) antes de ejecutar el
+instalador; MEIGA reutilizará ese motor.
 
 Para Fedora, RHEL, Arch Linux y openSUSE consulte la guía
 [Instalación en WSL y Linux](docs/installation.md), que contiene los comandos
-específicos de cada gestor de paquetes.
+específicos y los paquetes que el instalador selecciona automáticamente.
 
 #### Verificación de los requisitos
 
@@ -140,7 +139,7 @@ python3 --version
 
 - `docker info` debe mostrar información del servidor sin terminar en error.
 - Git debe mostrar un número de versión.
-- Python debe ser 3.10 o posterior.
+- Python debe estar entre 3.10 y 3.14.
 
 Si `docker info` falla en WSL, confirme que Docker Desktop está abierto y que
 la integración con Ubuntu está activa. Si falla en Linux nativo, cierre la
@@ -170,12 +169,14 @@ Esta es la opción recomendada para todos los estudiantes:
 
 El comando:
 
-1. crea el entorno Python local `.venv`;
-2. instala NumPy y Matplotlib para los análisis;
-3. descarga desde Docker Hub la imagen pública
+1. instala las herramientas básicas que falten: Git, curl, Python, `venv` y
+   Docker;
+2. crea el entorno Python local `.venv`;
+3. instala el conjunto científico completo para los análisis;
+4. descarga desde Docker Hub la imagen pública
    `rmartinezmaple/meiga-school:3.3-g4gro`;
-4. crea e inicia el contenedor `meiga_school`;
-5. comprueba que el ejecutable WCD está disponible.
+5. crea e inicia el contenedor `meiga_school`;
+6. comprueba que el ejecutable WCD está disponible.
 
 No necesita una cuenta de Docker Hub. La imagen instalada ocupa
 aproximadamente 2.43 GB; Docker reutiliza las capas que ya estén descargadas.
@@ -188,6 +189,10 @@ Primera prueba: ./meiga-school run wcd-30s --smoke 60
 
 No es necesario activar `.venv` ni entrar al contenedor. Las prácticas se
 controlan mediante `./meiga-school`.
+
+En un computador administrado donde no tenga permiso para instalar paquetes,
+use `./meiga-school install --skip-system-deps` después de que el responsable
+del sistema prepare Docker, Git y Python.
 
 #### Entrar al contenedor
 
@@ -426,7 +431,8 @@ comando `./meiga-school shell`.
   `chmod +x meiga-school scripts/*.sh` y vuelva a intentar.
 - **El contenedor pertenece a otra imagen:** use el nombre sugerido por el
   instalador, por ejemplo `./meiga-school install --container meiga_school_3_2`.
-- **No se puede crear `.venv`:** instale `python3-venv` en Ubuntu o Debian.
+- **No se puede crear `.venv`:** repita `./meiga-school install`; el comando
+  instala `python3-venv` automáticamente en Ubuntu y Debian.
 - **No hay espacio suficiente:** la descarga necesita varios GB y la
   compilación local requiere al menos 15 GiB libres.
 
@@ -464,8 +470,9 @@ Para repetir exactamente una configuración, declare semilla e identificador:
 
 ## Compatibilidad
 
-Los scripts se ejecutan en Bash y no dependen de `apt`, `systemd` ni rutas de
-WSL. El mismo flujo funciona con Docker en:
+Los scripts se ejecutan en Bash y reconocen `apt`, `dnf`, `pacman` y `zypper`;
+para gestores desconocidos pueden reutilizar una instalación previa de Docker
+y Python. El mismo flujo funciona en:
 
 - WSL2 con Ubuntu o Debian;
 - Ubuntu y Debian nativos;

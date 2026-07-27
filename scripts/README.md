@@ -3,8 +3,11 @@
 La interfaz pública es `./meiga-school`; los usuarios no necesitan invocar los
 scripts internos.
 
-- `install.sh`: valida Linux/WSL y Docker, instala `.venv`, construye o descarga
-  la imagen y crea/inicia el contenedor sin borrar recursos existentes.
+- `install-system-dependencies.sh`: instala automáticamente Git, Python, `venv`,
+  curl y Docker cuando falten.
+- `install.sh`: valida Linux/WSL, prepara las dependencias, instala `.venv`,
+  construye o descarga la imagen y crea/inicia el contenedor sin borrar
+  recursos existentes.
 - `check-requirements.sh`: diagnostica plataforma, versiones Python exactas,
   Docker, imagen, contenedor, memoria, CPU y disco.
 - `setup-python.sh`: crea `.venv` con las versiones científicas fijadas.

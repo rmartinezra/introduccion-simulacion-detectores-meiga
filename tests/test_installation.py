@@ -18,6 +18,7 @@ class InstallationTests(unittest.TestCase):
         scripts = [
             ROOT / "meiga-school",
             ROOT / "scripts" / "install.sh",
+            ROOT / "scripts" / "install-system-dependencies.sh",
             ROOT / "scripts" / "setup-python.sh",
             ROOT / "scripts" / "check-requirements.sh",
             ROOT / "scripts" / "run-wcd-campaign.sh",
@@ -91,10 +92,11 @@ class InstallationTests(unittest.TestCase):
             "8 GiB de RAM",
             "15 GiB libres",
             "wsl --install -d Ubuntu",
-            "Use the WSL 2 based engine",
-            "sudo apt install -y git python3 python3-venv",
-            "sudo systemctl enable --now docker",
-            'sudo usermod -aG docker "$USER"',
+            "instala automáticamente",
+            "sudo apt install -y git",
+            "Docker Engine dentro de Ubuntu",
+            "WSL Integration",
+            "--skip-system-deps",
             "docker info",
             "docs.docker.com/engine/install/ubuntu/",
             "docs.docker.com/engine/install/debian/",
@@ -185,6 +187,28 @@ class InstallationTests(unittest.TestCase):
                 self.assertNotIn(command, installer)
         self.assertIn("docker create", installer)
 
+    def test_installer_bootstraps_missing_system_dependencies(self) -> None:
+        installer = (ROOT / "scripts" / "install.sh").read_text(encoding="utf-8")
+        bootstrap = (
+            ROOT / "scripts" / "install-system-dependencies.sh"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn('"$SCRIPT_DIR/install-system-dependencies.sh"', installer)
+        self.assertIn("--skip-system-deps", installer)
+        self.assertLess(
+            installer.index('"$SCRIPT_DIR/install-system-dependencies.sh"'),
+            installer.index("for command_name in bash docker python3"),
+        )
+        for package_manager in ("apt-get", "dnf", "pacman", "zypper"):
+            with self.subTest(package_manager=package_manager):
+                self.assertIn(package_manager, bootstrap)
+        for dependency in ("curl", "git", "python3", "docker"):
+            with self.subTest(dependency=dependency):
+                self.assertIn(dependency, bootstrap)
+        self.assertIn("Docker Desktop.exe", bootstrap)
+        self.assertIn("usermod -aG docker", bootstrap)
+        self.assertNotIn("curl | sh", bootstrap)
+
     def test_campaign_runner_uses_project_virtualenv(self) -> None:
         runner = (ROOT / "scripts" / "run-wcd-campaign.sh").read_text(
             encoding="utf-8"
@@ -207,7 +231,17 @@ class InstallationTests(unittest.TestCase):
             if line.partition("#")[0].strip()
         ]
         self.assertGreaterEqual(len(dependencies), 10)
-        self.assertTrue(all(line.count("==") == 1 for line in dependencies))
+        self.assertTrue(
+            all(line.partition(";")[0].count("==") == 1 for line in dependencies)
+        )
+        self.assertIn(
+            'numpy==2.2.6 ; python_version == "3.10"',
+            dependencies,
+        )
+        self.assertIn(
+            'numpy==2.4.6 ; python_version >= "3.11" and python_version < "3.15"',
+            dependencies,
+        )
 
         verifier = ROOT / "scripts" / "verify-python-env.py"
         self.assertTrue(verifier.is_file())
@@ -220,6 +254,9 @@ class InstallationTests(unittest.TestCase):
             with self.subTest(script=script_name):
                 contents = (ROOT / "scripts" / script_name).read_text(encoding="utf-8")
                 self.assertIn("verify-python-env.py", contents)
+
+        setup = (ROOT / "scripts" / "setup-python.sh").read_text(encoding="utf-8")
+        self.assertIn("--only-binary=:all:", setup)
 
 
 if __name__ == "__main__":

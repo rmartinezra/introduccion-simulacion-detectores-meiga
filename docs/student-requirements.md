@@ -3,8 +3,9 @@
 ## Plataforma mínima
 
 - Windows 10/11 de 64 bits con WSL2, o Linux de 64 bits.
-- Docker Desktop con integración WSL2, o Docker Engine nativo.
-- Bash, Git y Python 3.10 o posterior.
+- Bash y permiso para instalar paquetes mediante `sudo`.
+- Docker, Git y Python pueden estar ausentes: el instalador los prepara. Se
+  admiten Python 3.10, 3.11, 3.12, 3.13 y 3.14.
 - 4 núcleos, 8 GiB de RAM y 15 GiB libres.
 
 Se admiten Ubuntu, Debian, Fedora/RHEL, Arch Linux, openSUSE y distribuciones
@@ -20,7 +21,7 @@ No se requiere GPU.
 
 ## Instalación
 
-Después de instalar Docker, Git y Python:
+Después de instalar WSL o abrir una terminal Linux:
 
 ```bash
 git clone https://github.com/rmartinezra/introduccion-simulacion-detectores-meiga.git
@@ -28,9 +29,9 @@ cd introduccion-simulacion-detectores-meiga
 ./meiga-school install
 ```
 
-El comando instala NumPy 2.2.6 y Matplotlib 3.10.3 dentro de `.venv`; no
-modifica el Python del sistema. La imagen de simulación se descarga de Docker
-Hub; no es necesario compilar Geant4 en el equipo del estudiante.
+El comando instala automáticamente las herramientas del sistema que falten,
+crea `.venv` con las versiones científicas fijadas y descarga la imagen desde
+Docker Hub. No es necesario compilar Geant4 en el equipo del estudiante.
 
 Consulte [installation.md](installation.md) para instrucciones por
 distribución.

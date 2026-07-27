@@ -7,6 +7,16 @@ import sys
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 
+try:
+    from packaging.requirements import InvalidRequirement, Requirement
+    from packaging.utils import canonicalize_name
+except ImportError:
+    print(
+        "[ERROR] Falta 'packaging'; repare el entorno con ./meiga-school install.",
+        file=sys.stderr,
+    )
+    raise SystemExit(1)
+
 
 ROOT = Path(__file__).resolve().parents[1]
 REQUIREMENTS = ROOT / "analysis" / "requirements.txt"
@@ -20,23 +30,32 @@ def pinned_requirements() -> dict[str, str]:
         line = raw_line.partition("#")[0].strip()
         if not line:
             continue
-        if "==" not in line:
+        try:
+            requirement = Requirement(line)
+        except InvalidRequirement as error:
+            raise SystemExit(
+                f"[ERROR] {REQUIREMENTS}:{number}: requisito inválido: {error}"
+            ) from error
+        if requirement.marker and not requirement.marker.evaluate():
+            continue
+        specifiers = list(requirement.specifier)
+        if len(specifiers) != 1 or specifiers[0].operator != "==":
             raise SystemExit(
                 f"[ERROR] {REQUIREMENTS}:{number}: la dependencia no está fijada: {line}"
             )
-        name, expected = (part.strip() for part in line.split("==", maxsplit=1))
-        if not name or not expected:
+        name = canonicalize_name(requirement.name)
+        if name in pinned:
             raise SystemExit(
-                f"[ERROR] {REQUIREMENTS}:{number}: requisito inválido: {line}"
+                f"[ERROR] {REQUIREMENTS}:{number}: requisito activo duplicado: {name}"
             )
-        pinned[name.casefold()] = expected
+        pinned[name] = specifiers[0].version
     return pinned
 
 
 def main() -> int:
-    if sys.version_info < (3, 10):
+    if not (sys.version_info >= (3, 10) and sys.version_info < (3, 15)):
         print(
-            f"[ERROR] Se requiere Python >= 3.10; encontrado {sys.version.split()[0]}",
+            f"[ERROR] Se requiere Python 3.10-3.14; encontrado {sys.version.split()[0]}",
             file=sys.stderr,
         )
         return 1

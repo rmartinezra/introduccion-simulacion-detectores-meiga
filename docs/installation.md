@@ -1,80 +1,68 @@
 # Instalación en WSL y Linux
 
-El proyecto necesita solamente Git, Bash, Python 3.10+ y un Docker funcional en
-el sistema anfitrión. Geant4, Boost y MEIGA se construyen dentro de la imagen.
+El proyecto necesita Bash y acceso administrativo mediante `sudo`. El
+instalador prepara automáticamente Git, curl, Python 3.10–3.14, `venv` y Docker
+cuando falten. Geant4, Boost y MEIGA permanecen dentro de la imagen.
 
 ## Windows con WSL2
 
 1. Instale WSL2 y una distribución Ubuntu o Debian.
-2. Instale Docker Desktop para Windows.
-3. En Docker Desktop, habilite **Settings → Resources → WSL Integration** para
-   la distribución que utilizará.
-4. Abra la terminal WSL y verifique:
+2. Obtenga el repositorio y ejecute:
 
 ```bash
-docker info
-python3 --version
-git --version
+./meiga-school install --pull
 ```
+
+Si Docker no existe, el instalador instala Docker Engine dentro de WSL. Las
+versiones recientes de Ubuntu instaladas con `wsl --install` usan systemd y
+pueden iniciar el servicio directamente.
+
+También puede usar Docker Desktop. Instálelo en Windows y habilite **Settings →
+Resources → WSL Integration** para la distribución que utilizará. Si el
+instalador detecta Docker Desktop, no instala un segundo Docker Engine.
 
 Para mejor rendimiento, clone el repositorio dentro del sistema Linux
 (`~/proyectos/...`) y no bajo `/mnt/c/...`.
 
-En Ubuntu dentro de WSL, si faltan Git, Python o `venv`:
+### Docker Engine dentro de WSL
 
-```bash
-sudo apt update
-sudo apt install -y git python3 python3-venv
+Si una distribución WSL antigua no está ejecutando systemd, actualice WSL y
+habilítelo en `/etc/wsl.conf`:
+
+```ini
+[boot]
+systemd=true
 ```
 
-No instale un segundo daemon Docker dentro de WSL cuando use Docker Desktop.
+Después ejecute `wsl --shutdown` desde PowerShell, vuelva a abrir Ubuntu y
+repita `./meiga-school install --pull`. Consulte la
+[guía oficial de systemd en WSL](https://learn.microsoft.com/windows/wsl/systemd).
 
 ## Ubuntu y Debian nativos
 
-Instale las herramientas del anfitrión:
-
-```bash
-sudo apt update
-sudo apt install -y git python3 python3-venv
-```
-
-Instale Docker Engine siguiendo la guía oficial correspondiente a
+Ejecute `./meiga-school install --pull`. El instalador usa los paquetes
+mantenidos por la distribución e inicia Docker. Si necesita específicamente
+Docker CE, puede instalarlo previamente siguiendo la guía oficial de
 [Ubuntu](https://docs.docker.com/engine/install/ubuntu/) o
-[Debian](https://docs.docker.com/engine/install/debian/). Después compruebe que
-su usuario puede ejecutar:
-
-```bash
-docker info
-```
+[Debian](https://docs.docker.com/engine/install/debian/); el script reutilizará
+esa instalación.
 
 ## Fedora, RHEL y derivados
 
-```bash
-sudo dnf install -y git python3
-```
-
-Instale Docker Engine mediante la
-[documentación oficial](https://docs.docker.com/engine/install/) para su
-distribución. El instalador del curso no depende de `apt`.
+El instalador usa `dnf` y prepara `moby-engine`, Git, curl y Python. Si la
+distribución no ofrece `moby-engine`, instale Docker Engine mediante la
+[documentación oficial](https://docs.docker.com/engine/install/) y repita el
+comando.
 
 ## Arch Linux
 
-```bash
-sudo pacman -S --needed git python docker
-sudo systemctl enable --now docker
-```
-
-Configure el acceso de su usuario a Docker según la documentación de Arch y
-verifique `docker info`.
+El instalador usa `pacman` para preparar Git, curl, Python y Docker, y después
+inicia el servicio.
 
 ## openSUSE
 
-```bash
-sudo zypper install git python3 python3-pip docker
-sudo systemctl enable --now docker
-```
-
-Verifique que `python3 -m venv --help` y `docker info` funcionen.
+El instalador usa `zypper` para preparar Git, curl, Python y Docker, y después
+inicia el servicio.
 
 ## Instalar el curso
 
@@ -107,14 +95,22 @@ También se pueden fijar estos valores mediante `MEIGA_IMAGE`,
 
 `./meiga-school install`:
 
-1. valida Linux/WSL, Docker y Python;
-2. crea `.venv` e instala las dependencias del análisis;
-3. descarga o reutiliza la imagen precompilada desde Docker Hub;
-4. si hace falta, construye Geant4 10.7.4, Hodoscopio, Torre, WCD y G4GRO;
-5. crea e inicia el contenedor `meiga_school`;
-6. verifica que el ejecutable WCD esté disponible.
+1. detecta Linux/WSL y el gestor de paquetes;
+2. instala Git, curl, Python, `venv`, certificados y Docker cuando falten;
+3. inicia Docker y habilita al usuario actual;
+4. crea `.venv` e instala las dependencias exactas del análisis;
+5. descarga o reutiliza la imagen precompilada desde Docker Hub;
+6. si hace falta, construye Geant4 10.7.4, Hodoscopio, Torre, WCD y G4GRO;
+7. crea e inicia el contenedor `meiga_school`;
+8. verifica que el ejecutable WCD esté disponible.
 
 El proceso es idempotente y no elimina contenedores, imágenes ni resultados.
+En sistemas administrados donde no deba instalar paquetes, utilice
+`./meiga-school install --skip-system-deps`.
+
+Las dependencias científicas se descargan únicamente como ruedas binarias. El
+instalador usa NumPy 2.2.6 con Python 3.10 y NumPy 2.4.6 con Python 3.11–3.14;
+no intenta compilar NumPy, Matplotlib ni sus extensiones en el computador.
 
 ## Entrar al contenedor
 

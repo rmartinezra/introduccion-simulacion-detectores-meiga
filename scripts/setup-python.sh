@@ -8,9 +8,9 @@ VENV="$PROJECT_ROOT/.venv"
 command -v python3 >/dev/null || { echo "[ERROR] Falta python3" >&2; exit 1; }
 python3 - <<'PY'
 import sys
-if sys.version_info < (3, 10):
+if not (sys.version_info >= (3, 10) and sys.version_info < (3, 15)):
     raise SystemExit(
-        f"[ERROR] Se requiere Python >= 3.10; encontrado {sys.version.split()[0]}"
+        f"[ERROR] Se requiere Python 3.10-3.14; encontrado {sys.version.split()[0]}"
     )
 PY
 
@@ -24,6 +24,7 @@ fi
 "$VENV/bin/python" -m pip install --disable-pip-version-check --upgrade pip
 "$VENV/bin/python" -m pip install \
   --disable-pip-version-check \
+  --only-binary=:all: \
   --upgrade \
   -r "$PROJECT_ROOT/analysis/requirements.txt"
 "$VENV/bin/python" -m pip check
