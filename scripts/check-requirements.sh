@@ -41,10 +41,10 @@ check_command python3 Python
 check_command git Git
 
 if command -v python3 >/dev/null 2>&1; then
-  if python3 -c 'import sys; raise SystemExit(sys.version_info < (3, 10))'; then
+  if python3 -c 'import sys; raise SystemExit(not ((3, 10) <= sys.version_info < (3, 15)))'; then
     echo "[OK]   Python version $(python3 -c 'import sys; print(sys.version.split()[0])')"
   else
-    echo "[FAIL] Python version se requiere Python >= 3.10"
+    echo "[FAIL] Python version se requiere Python 3.10-3.14"
     failures=$((failures + 1))
   fi
 fi

@@ -37,4 +37,6 @@ Para analizar nuevamente una salida ya generada, consulte la ayuda:
 
 Las versiones exactas usadas en una corrida quedan registradas en su
 `manifest.json`. `requirements.txt` fija el entorno Python completo. Los scripts
-rechazan el Python global del sistema para evitar mezclar versiones.
+rechazan el Python global del sistema para evitar mezclar versiones. El archivo
+selecciona NumPy 2.2.6 para Python 3.10 y NumPy 2.4.6 para Python 3.11-3.14;
+ambas rutas se instalan exclusivamente desde paquetes binarios.

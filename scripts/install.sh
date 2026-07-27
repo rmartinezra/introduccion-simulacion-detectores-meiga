@@ -10,12 +10,14 @@ BUILD_JOBS="${MEIGA_BUILD_JOBS:-2}"
 IMAGE_MODE="auto"
 FORCE_BUILD=0
 INSTALL_PYTHON=1
+INSTALL_SYSTEM_DEPS="${MEIGA_AUTO_INSTALL_SYSTEM:-1}"
+ORIGINAL_ARGS=("$@")
 
 usage() {
   cat <<'EOF'
 Uso: ./meiga-school install [opciones]
 
-Instala el entorno Python, prepara la imagen y crea/inicia el contenedor.
+Instala herramientas básicas, el entorno Python, la imagen y el contenedor.
 
 Opciones:
   --image REFERENCIA   Imagen (default: rmartinezmaple/meiga-school:3.3-g4gro).
@@ -25,9 +27,11 @@ Opciones:
   --build              Construye desde fuente en lugar de descargar.
   --force-build        Reconstruye la imagen aunque ya exista.
   --skip-python        No crea ni actualiza .venv.
+  --skip-system-deps   No intenta instalar Git, Python ni Docker.
   -h, --help           Muestra esta ayuda.
 
-Variables equivalentes: MEIGA_IMAGE, MEIGA_CONTAINER y MEIGA_BUILD_JOBS.
+Variables equivalentes: MEIGA_IMAGE, MEIGA_CONTAINER, MEIGA_BUILD_JOBS y
+MEIGA_AUTO_INSTALL_SYSTEM (0 desactiva la instalación de paquetes).
 EOF
 }
 
@@ -40,6 +44,7 @@ while (($#)); do
     --build) IMAGE_MODE="build"; shift ;;
     --force-build) IMAGE_MODE="build"; FORCE_BUILD=1; shift ;;
     --skip-python) INSTALL_PYTHON=0; shift ;;
+    --skip-system-deps) INSTALL_SYSTEM_DEPS=0; shift ;;
     -h|--help) usage; exit 0 ;;
     *) echo "[ERROR] Opción desconocida: $1" >&2; usage >&2; exit 2 ;;
   esac
@@ -66,6 +71,10 @@ else
 fi
 echo "[INFO] Plataforma: $platform ($(uname -m))"
 
+if ((INSTALL_SYSTEM_DEPS)); then
+  bash "$SCRIPT_DIR/install-system-dependencies.sh"
+fi
+
 for command_name in bash docker python3; do
   command -v "$command_name" >/dev/null 2>&1 || {
     echo "[ERROR] Falta '$command_name'. Consulte docs/installation.md." >&2
@@ -73,18 +82,32 @@ for command_name in bash docker python3; do
   }
 done
 
+# usermod no modifica los grupos suplementarios del proceso actual. Reejecutar
+# solamente este instalador con el grupo docker permite continuar sin cerrar WSL.
+if command -v sg >/dev/null 2>&1 && getent group docker >/dev/null 2>&1 && \
+  [[ " $(id -nG) " != *" docker "* ]]; then
+  docker_members="$(getent group docker | cut -d: -f4)"
+  if [[ ",$docker_members," == *",${USER:-},"* ]]; then
+    printf -v install_command '%q ' "$0" "${ORIGINAL_ARGS[@]}"
+    echo "[INFO] Activando el grupo Docker para esta instalación..."
+    exec sg docker -c "$install_command"
+  fi
+fi
+
 python3 - <<'PY'
 import sys
-if sys.version_info < (3, 10):
+if not (sys.version_info >= (3, 10) and sys.version_info < (3, 15)):
     raise SystemExit(
-        f"[ERROR] Se requiere Python >= 3.10; encontrado {sys.version.split()[0]}"
+        f"[ERROR] Se requiere Python 3.10-3.14; encontrado {sys.version.split()[0]}"
     )
 print(f"[INFO] Python: {sys.version.split()[0]}")
 PY
 
 if ! docker info >/dev/null 2>&1; then
   if [[ "$platform" == "WSL2" ]]; then
-    echo "[ERROR] Docker no responde. Inicie Docker Desktop y habilite la integración WSL." >&2
+    echo "[ERROR] Docker no responde." >&2
+    echo "        Si usa Docker Desktop, ábralo y habilite la integración WSL." >&2
+    echo "        Si instaló Docker Engine, compruebe que WSL utiliza systemd." >&2
   else
     echo "[ERROR] Docker no responde. Inicie Docker Engine y habilite acceso para su usuario." >&2
   fi

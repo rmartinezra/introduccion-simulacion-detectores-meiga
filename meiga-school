@@ -3,6 +3,17 @@ set -Eeuo pipefail
 
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
+# Si el instalador acaba de agregar al usuario al grupo docker, los comandos
+# posteriores funcionan de inmediato aunque la terminal todavía sea antigua.
+if command -v sg >/dev/null 2>&1 && getent group docker >/dev/null 2>&1 && \
+  [[ " $(id -nG) " != *" docker "* ]]; then
+  docker_members="$(getent group docker | cut -d: -f4)"
+  if [[ ",$docker_members," == *",${USER:-},"* ]]; then
+    printf -v meiga_command '%q ' "$0" "$@"
+    exec sg docker -c "$meiga_command"
+  fi
+fi
+
 usage() {
   cat <<'EOF'
 MEIGA School
