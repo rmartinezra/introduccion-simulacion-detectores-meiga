@@ -72,7 +72,7 @@ fi
 echo "[INFO] Plataforma: $platform ($(uname -m))"
 
 if ((INSTALL_SYSTEM_DEPS)); then
-  "$SCRIPT_DIR/install-system-dependencies.sh"
+  bash "$SCRIPT_DIR/install-system-dependencies.sh"
 fi
 
 for command_name in bash docker python3; do

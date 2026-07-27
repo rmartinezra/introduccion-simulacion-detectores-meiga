@@ -193,10 +193,11 @@ class InstallationTests(unittest.TestCase):
             ROOT / "scripts" / "install-system-dependencies.sh"
         ).read_text(encoding="utf-8")
 
-        self.assertIn('"$SCRIPT_DIR/install-system-dependencies.sh"', installer)
+        bootstrap_call = 'bash "$SCRIPT_DIR/install-system-dependencies.sh"'
+        self.assertIn(bootstrap_call, installer)
         self.assertIn("--skip-system-deps", installer)
         self.assertLess(
-            installer.index('"$SCRIPT_DIR/install-system-dependencies.sh"'),
+            installer.index(bootstrap_call),
             installer.index("for command_name in bash docker python3"),
         )
         for package_manager in ("apt-get", "dnf", "pacman", "zypper"):
