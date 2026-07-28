@@ -1,0 +1,22 @@
+{
+  "name": "MEIGA School",
+
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+
+  "forwardPorts": [
+    6080
+  ],
+
+  "portsAttributes": {
+    "6080": {
+      "label": "Visualizador 3D MEIGA",
+      "onAutoForward": "notify",
+      "visibility": "private"
+    }
+  },
+
+  "postCreateCommand": "chmod +x scripts/viewer.sh"
+}
