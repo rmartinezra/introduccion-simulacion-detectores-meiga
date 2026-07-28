@@ -1,11 +1,12 @@
 # Isolated G4GRO integration
 
 This directory contains the original compressed packages and the isolated
-integration artifacts. The colleague's current application is kept
-byte-for-byte under the container's `vendor/current` directory. It is not
-edited. The earlier `Escuela` package remains under `vendor/legacy` only
-because it supplies the custom materials and physics list that were not
-included again in the current application package.
+integration artifacts. The colleague's current application is extracted
+byte-for-byte under the container's `vendor/current` directory. The earlier
+`Escuela` package remains under `vendor/legacy` only because it supplies the
+custom materials and physics list that were not included again in the current
+application package. Both extracted trees are writable; the compressed
+packages and SHA-256 manifests preserve the original references.
 
 The isolated build uses:
 
@@ -26,9 +27,9 @@ course simulators is changed.
 
 ```text
 /opt/meiga-school/external/G4GROSimulator/
-├── vendor/current/       current author package, read-only
-├── vendor/legacy/        legacy custom materials and physics, read-only
-├── meiga-source/         private MEIGA source copy plus integration shims
+├── vendor/current/       editable current author package
+├── vendor/legacy/        editable legacy materials and physics
+├── meiga-source/         editable build source plus integration shims
 ├── build/                private CMake build
 ├── runtime/              integration configuration
 ├── runs/                 self-contained run directories
@@ -51,9 +52,10 @@ Modes:
 
 ## Edit and rebuild G4GRO
 
-Edit only the private working copy under `meiga-source`. Do not edit either
-vendor directory: they are read-only, byte-for-byte copies of the colleague's
-packages.
+All G4GRO trees are writable inside the container. The active CMake build uses
+`meiga-source`, so edit that tree when a change must affect the executable.
+The `vendor` trees can also be edited for inspection or experimentation, but a
+change made only there is not compiled automatically.
 
 Open a shell in the running container:
 

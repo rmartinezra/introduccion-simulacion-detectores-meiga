@@ -1,7 +1,7 @@
 # Contenedor autónomo
 
 `Dockerfile` construye
-`rmartinezmaple/meiga-school:3.4-g4gro-viewer` sin depender de una imagen MEIGA local.
+`rmartinezmaple/meiga-school:3.4.1-g4gro-viewer` sin depender de una imagen MEIGA local.
 Parte de `ubuntu:22.04` e instala:
 
 - Geant4 10.7.4 y sus conjuntos de datos;
@@ -20,8 +20,8 @@ Desde la raíz:
 ```bash
 docker build \
   --file container/Dockerfile \
-  --tag rmartinezmaple/meiga-school:3.4-g4gro-viewer \
-  --tag meiga_school:3.4-g4gro-viewer \
+  --tag rmartinezmaple/meiga-school:3.4.1-g4gro-viewer \
+  --tag meiga_school:3.4.1-g4gro-viewer \
   --build-arg BUILD_JOBS=2 \
   .
 ```
@@ -45,7 +45,7 @@ docker create \
   --name meiga_school \
   --init \
   --publish 127.0.0.1:6080:6080 \
-  rmartinezmaple/meiga-school:3.4-g4gro-viewer
+  rmartinezmaple/meiga-school:3.4.1-g4gro-viewer
 docker start meiga_school
 ```
 

@@ -6,7 +6,7 @@ ARG GEANT4_SOURCE_SHA256=602b41dfee1fa6b33b026d00c5bd940155d7e5d0b3495230a87e2a2
 ARG BUILD_JOBS=2
 
 LABEL org.opencontainers.image.title="MEIGA School"
-LABEL org.opencontainers.image.version="3.4"
+LABEL org.opencontainers.image.version="3.4.1"
 LABEL org.opencontainers.image.description="Self-contained MEIGA detector course with Geant4 10.7.4, WCD campaigns, isolated G4GRO and browser-based VRML visualization"
 LABEL org.opencontainers.image.source="https://github.com/rmartinezra/introduccion-simulacion-detectores-meiga"
 

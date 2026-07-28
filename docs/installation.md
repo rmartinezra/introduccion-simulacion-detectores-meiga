@@ -85,7 +85,7 @@ La imagen pública predeterminada es:
 ```bash
 ./meiga-school install \
   --pull \
-  --image rmartinezmaple/meiga-school:3.4-g4gro-viewer
+  --image rmartinezmaple/meiga-school:3.4.1-g4gro-viewer
 ```
 
 También se pueden fijar estos valores mediante `MEIGA_IMAGE`,

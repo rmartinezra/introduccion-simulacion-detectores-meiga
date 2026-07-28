@@ -174,7 +174,7 @@ El comando:
 2. crea el entorno Python local `.venv`;
 3. instala el conjunto científico completo para los análisis;
 4. descarga desde Docker Hub la imagen pública
-   `rmartinezmaple/meiga-school:3.4-g4gro-viewer`;
+   `rmartinezmaple/meiga-school:3.4.1-g4gro-viewer`;
 5. crea e inicia el contenedor `meiga_school`;
 6. comprueba que el ejecutable WCD y el visor 3D están disponibles.
 
@@ -357,7 +357,7 @@ Existen las dos opciones. Para las prácticas regulares se recomienda
 ```
 
 Esta opción no compila Geant4 en el computador del estudiante. Descarga la
-versión exacta `3.4-g4gro-viewer`, de modo que todo el grupo utiliza el mismo
+versión exacta `3.4.1-g4gro-viewer`, de modo que todo el grupo utiliza el mismo
 entorno.
 
 También existe un modo automático:
@@ -429,12 +429,12 @@ MEIGA_CONTAINER=meiga_school_local_v2 \
 El instalador recomendado ejecuta internamente operaciones equivalentes a:
 
 ```bash
-docker pull rmartinezmaple/meiga-school:3.4-g4gro-viewer
+docker pull rmartinezmaple/meiga-school:3.4.1-g4gro-viewer
 docker create \
   --name meiga_school \
   --init \
   --publish 127.0.0.1:6080:6080 \
-  rmartinezmaple/meiga-school:3.4-g4gro-viewer
+  rmartinezmaple/meiga-school:3.4.1-g4gro-viewer
 docker start meiga_school
 ```
 
@@ -445,9 +445,9 @@ contenedor y no configura el análisis. Por eso debe preferirse
 
 La imagen también está publicada como
 [`rmartinezmaple/meiga-school:latest`](https://hub.docker.com/r/rmartinezmaple/meiga-school),
-pero el curso fija `3.4-g4gro-viewer` para evitar cambios inesperados.
+pero el curso fija `3.4.1-g4gro-viewer` para evitar cambios inesperados.
 
-### Actualizar desde `3.3-g4gro`
+### Actualizar desde `3.4-g4gro-viewer` o `3.3-g4gro`
 
 El instalador no reemplaza contenedores automáticamente. Esta protección evita
 perder cambios manuales. Después de copiar cualquier archivo que haya editado
@@ -455,7 +455,6 @@ dentro del contenedor anterior, actualice así:
 
 ```bash
 docker rm -f meiga_school
-docker image rm rmartinezmaple/meiga-school:3.3-g4gro
 ./meiga-school install --pull
 ./meiga-school doctor
 ```
@@ -566,11 +565,13 @@ completo:
 
 ## Aplicación externa G4GRO
 
-La imagen incluye G4GRO como aplicación opcional de un colaborador. Su paquete
-original permanece intacto y se compila contra una copia privada de MEIGA para
-que sus materiales y lista física no afecten Hodoscopio, Torre ni WCD. Consulte
-la [guía de G4GRO](external-apps/g4gro/README.md) para ejecutarla, editar `.cc`
-y recompilar.
+La imagen incluye G4GRO como aplicación opcional de un colaborador. Los
+comprimidos originales permanecen intactos, mientras que todas las copias
+extraídas de GRO son editables dentro del contenedor. La aplicación se compila
+contra una copia privada de MEIGA para que sus materiales y lista física no
+afecten Hodoscopio, Torre ni WCD. Consulte la
+[guía de G4GRO](external-apps/g4gro/README.md) para ejecutarla, editar `.cc` y
+recompilar.
 
 ## Organización
 

@@ -128,7 +128,7 @@ class InstallationTests(unittest.TestCase):
         self.assertIn("FROM ubuntu:22.04", dockerfile)
         self.assertNotIn("FROM ${BASE_IMAGE}", dockerfile)
         self.assertNotIn("meiga_school:3.0", dockerfile)
-        self.assertIn('org.opencontainers.image.version="3.4"', dockerfile)
+        self.assertIn('org.opencontainers.image.version="3.4.1"', dockerfile)
         self.assertIn("nlohmann-json3-dev", dockerfile)
         for editor in ("less", "nano", "vim"):
             with self.subTest(editor=editor):
@@ -149,8 +149,8 @@ class InstallationTests(unittest.TestCase):
                     rf"(?m)^\s+{viewer_package}(?:\s|\\)",
                 )
 
-    def test_default_image_is_the_versioned_3_4_release(self) -> None:
-        expected = "rmartinezmaple/meiga-school:3.4-g4gro-viewer"
+    def test_default_image_is_the_versioned_3_4_1_release(self) -> None:
+        expected = "rmartinezmaple/meiga-school:3.4.1-g4gro-viewer"
         for path in (
             ROOT / "scripts" / "install.sh",
             ROOT / "scripts" / "check-requirements.sh",
@@ -219,7 +219,7 @@ class InstallationTests(unittest.TestCase):
         self.assertIn("Materials().SoilBH50", construction)
         self.assertIn("fWorldSizeX = 40 *CLHEP::m", header)
 
-    def test_g4gro_vendor_is_read_only_and_private_source_is_editable(self) -> None:
+    def test_all_g4gro_trees_are_editable(self) -> None:
         installer = (
             ROOT
             / "external-apps"
@@ -227,8 +227,11 @@ class InstallationTests(unittest.TestCase):
             / "integration"
             / "install-g4gro.sh"
         ).read_text(encoding="utf-8")
-        self.assertIn('chmod -R a-w "$VENDOR_DIR"', installer)
-        self.assertIn('chmod -R u+w "$SOURCE_DIR"', installer)
+        self.assertNotIn('chmod -R a-w "$VENDOR_DIR"', installer)
+        self.assertIn(
+            'chmod -R u+rwX "$VENDOR_DIR" "$SOURCE_DIR"',
+            installer,
+        )
 
     def test_meiga_source_snapshot_is_clean_and_verified(self) -> None:
         archive = ROOT / "container" / "meiga-school-source.tar.gz"

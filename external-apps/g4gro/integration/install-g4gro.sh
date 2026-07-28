@@ -69,7 +69,6 @@ find "$LEGACY_VENDOR_DIR/Escuela" -type f -print0 \
 find "$CURRENT_VENDOR_DIR/G4GROSimulator" -type f -print0 \
   | sort -z \
   | xargs -0 sha256sum > "$PREFIX/current-files.sha256"
-chmod -R a-w "$VENDOR_DIR"
 
 cp -a "$BASE_SOURCE" "$SOURCE_DIR"
 rm -rf "$SOURCE_DIR/.git"
@@ -79,7 +78,7 @@ install -m 0644 "$LEGACY_VENDOR_DIR/Escuela/G4MPhysicsList.cc" \
   "$SOURCE_DIR/G4Models/G4MPhysicsList.cc"
 install -m 0644 "$LEGACY_VENDOR_DIR/Escuela/Materials.cc" \
   "$SOURCE_DIR/G4Models/Materials.cc"
-chmod -R u+w "$SOURCE_DIR"
+chmod -R u+rwX "$VENDOR_DIR" "$SOURCE_DIR"
 
 patch --directory="$SOURCE_DIR" --strip=1 --batch \
   < "$INTEGRATION_DIR/meiga-isolation.patch"

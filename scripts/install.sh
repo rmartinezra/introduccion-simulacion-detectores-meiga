@@ -4,7 +4,7 @@ set -Eeuo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
 
-IMAGE="${MEIGA_IMAGE:-rmartinezmaple/meiga-school:3.4-g4gro-viewer}"
+IMAGE="${MEIGA_IMAGE:-rmartinezmaple/meiga-school:3.4.1-g4gro-viewer}"
 CONTAINER_NAME="${MEIGA_CONTAINER:-meiga_school}"
 BUILD_JOBS="${MEIGA_BUILD_JOBS:-2}"
 VIEWER_PORT="${MEIGA_VIEWER_PORT:-6080}"
@@ -21,7 +21,7 @@ Uso: ./meiga-school install [opciones]
 Instala herramientas básicas, el entorno Python, la imagen y el contenedor.
 
 Opciones:
-  --image REFERENCIA   Imagen (default: rmartinezmaple/meiga-school:3.4-g4gro-viewer).
+  --image REFERENCIA   Imagen (default: rmartinezmaple/meiga-school:3.4.1-g4gro-viewer).
   --container NOMBRE   Nombre del contenedor (default: meiga_school).
   --jobs N             Núcleos para compilar Geant4/MEIGA (default: 2).
   --viewer-port N      Puerto local del visor 3D (default: 6080).
