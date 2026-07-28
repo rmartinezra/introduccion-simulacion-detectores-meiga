@@ -174,12 +174,12 @@ El comando:
 2. crea el entorno Python local `.venv`;
 3. instala el conjunto científico completo para los análisis;
 4. descarga desde Docker Hub la imagen pública
-   `rmartinezmaple/meiga-school:3.3-g4gro`;
+   `rmartinezmaple/meiga-school:3.4-g4gro-viewer`;
 5. crea e inicia el contenedor `meiga_school`;
-6. comprueba que el ejecutable WCD está disponible.
+6. comprueba que el ejecutable WCD y el visor 3D están disponibles.
 
 No necesita una cuenta de Docker Hub. La imagen instalada ocupa
-aproximadamente 2.43 GB; Docker reutiliza las capas que ya estén descargadas.
+aproximadamente 2.7 GB; Docker reutiliza las capas que ya estén descargadas.
 Espere hasta ver:
 
 ```text
@@ -278,6 +278,46 @@ explorer.exe .
 Los resultados están en el computador del estudiante, no quedan encerrados
 dentro del contenedor.
 
+### Abra la visualización 3D
+
+Primero obtenga el directorio de la corrida más reciente:
+
+```bash
+latest_run="$(ls -dt results/runs/* | head -1)"
+```
+
+Después abra el archivo `visualization.wrl` directamente desde el contenedor:
+
+```bash
+./meiga-school view "$latest_run/run/visualization.wrl"
+```
+
+El comando copia temporalmente el WRL al contenedor, inicia el visor y muestra
+esta dirección:
+
+```text
+http://localhost:6080/vnc.html?autoconnect=true&resize=scale
+```
+
+Ábrala en Chrome, Firefox o Edge. En WSL el navegador se abre en Windows; no
+necesita copiar manualmente el WRL fuera del repositorio. Para consultar o
+detener el visor:
+
+```bash
+./meiga-school view --status
+./meiga-school view --stop
+```
+
+Si el puerto `6080` está ocupado, cree el contenedor con otro puerto:
+
+```bash
+./meiga-school install \
+  --container meiga_school_viewer \
+  --viewer-port 6081
+```
+
+Luego añada `--container meiga_school_viewer` al comando `view`.
+
 ### Ejemplos de resultados
 
 El análisis reproducible de una corrida WCD de 30 segundos genera, entre otras,
@@ -317,7 +357,8 @@ Existen las dos opciones. Para las prácticas regulares se recomienda
 ```
 
 Esta opción no compila Geant4 en el computador del estudiante. Descarga la
-versión exacta `3.3-g4gro`, de modo que todo el grupo utiliza el mismo entorno.
+versión exacta `3.4-g4gro-viewer`, de modo que todo el grupo utiliza el mismo
+entorno.
 
 También existe un modo automático:
 
@@ -388,10 +429,12 @@ MEIGA_CONTAINER=meiga_school_local_v2 \
 El instalador recomendado ejecuta internamente operaciones equivalentes a:
 
 ```bash
-docker pull rmartinezmaple/meiga-school:3.3-g4gro
+docker pull rmartinezmaple/meiga-school:3.4-g4gro-viewer
 docker create \
   --name meiga_school \
-  rmartinezmaple/meiga-school:3.3-g4gro
+  --init \
+  --publish 127.0.0.1:6080:6080 \
+  rmartinezmaple/meiga-school:3.4-g4gro-viewer
 docker start meiga_school
 ```
 
@@ -402,9 +445,9 @@ contenedor y no configura el análisis. Por eso debe preferirse
 
 La imagen también está publicada como
 [`rmartinezmaple/meiga-school:latest`](https://hub.docker.com/r/rmartinezmaple/meiga-school),
-pero el curso fija `3.3-g4gro` para evitar cambios inesperados.
+pero el curso fija `3.4-g4gro-viewer` para evitar cambios inesperados.
 
-### Actualizar desde `3.2-g4gro`
+### Actualizar desde `3.3-g4gro`
 
 El instalador no reemplaza contenedores automáticamente. Esta protección evita
 perder cambios manuales. Después de copiar cualquier archivo que haya editado
@@ -412,7 +455,7 @@ dentro del contenedor anterior, actualice así:
 
 ```bash
 docker rm -f meiga_school
-docker image rm rmartinezmaple/meiga-school:3.2-g4gro
+docker image rm rmartinezmaple/meiga-school:3.3-g4gro
 ./meiga-school install --pull
 ./meiga-school doctor
 ```

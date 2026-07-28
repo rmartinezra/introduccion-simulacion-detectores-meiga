@@ -22,6 +22,8 @@ Uso:
   ./meiga-school install [opciones]
   ./meiga-school doctor
   ./meiga-school shell [--container NOMBRE]
+  ./meiga-school view ARCHIVO.wrl [--container NOMBRE]
+  ./meiga-school view --stop [--container NOMBRE]
   ./meiga-school run wcd-30s [opciones]
   ./meiga-school run wcd-5min [opciones]
 
@@ -90,6 +92,125 @@ case "$command" in
       --env "TERM=${TERM:-xterm-256color}" \
       "$container_name" \
       bash
+    ;;
+  view)
+    shift
+    container_name="${MEIGA_CONTAINER:-meiga_school}"
+    viewer_action="start"
+    vrml_file=""
+    while (($#)); do
+      case "$1" in
+        --container)
+          container_name="${2:?Falta NOMBRE}"
+          shift 2
+          ;;
+        --stop)
+          viewer_action="stop"
+          shift
+          ;;
+        --status)
+          viewer_action="status"
+          shift
+          ;;
+        -h|--help)
+          cat <<'EOF'
+Uso:
+  ./meiga-school view ARCHIVO.wrl [--container NOMBRE]
+  ./meiga-school view --status [--container NOMBRE]
+  ./meiga-school view --stop [--container NOMBRE]
+EOF
+          exit 0
+          ;;
+        -*)
+          echo "[ERROR] Opción desconocida para view: $1" >&2
+          exit 2
+          ;;
+        *)
+          [[ -z "$vrml_file" ]] || {
+            echo "[ERROR] Indique solamente un archivo .wrl" >&2
+            exit 2
+          }
+          vrml_file="$1"
+          shift
+          ;;
+      esac
+    done
+
+    [[ "$container_name" =~ ^[A-Za-z0-9][A-Za-z0-9_.-]*$ ]] || {
+      echo "[ERROR] Nombre de contenedor no válido: $container_name" >&2
+      exit 2
+    }
+    command -v docker >/dev/null 2>&1 || {
+      echo "[ERROR] Docker no está disponible." >&2
+      exit 1
+    }
+    docker info >/dev/null 2>&1 || {
+      echo "[ERROR] Docker no responde. Inicie Docker Desktop o Docker Engine." >&2
+      exit 1
+    }
+    docker container inspect "$container_name" >/dev/null 2>&1 || {
+      echo "[ERROR] No existe el contenedor '$container_name'." >&2
+      echo "        Ejecute primero: ./meiga-school install --pull" >&2
+      exit 1
+    }
+    if [[ "$(docker inspect -f '{{.State.Running}}' "$container_name")" != "true" ]]; then
+      echo "[INFO] Iniciando el contenedor '$container_name'..."
+      docker start "$container_name" >/dev/null
+    fi
+    docker exec "$container_name" test -x /usr/local/bin/meiga-viewer || {
+      echo "[ERROR] '$container_name' no contiene el visor 3D." >&2
+      echo "        Instale la imagen actual con otro nombre de contenedor." >&2
+      exit 1
+    }
+
+    case "$viewer_action" in
+      stop)
+        exec docker exec "$container_name" meiga-viewer stop
+        ;;
+      status)
+        exec docker exec "$container_name" meiga-viewer status
+        ;;
+      start)
+        [[ -n "$vrml_file" ]] || {
+          echo "[ERROR] Falta la ruta del archivo .wrl" >&2
+          echo "Uso: ./meiga-school view ARCHIVO.wrl [--container NOMBRE]" >&2
+          exit 2
+        }
+        vrml_file="$(realpath -e -- "$vrml_file")" || {
+          echo "[ERROR] No existe el archivo: $vrml_file" >&2
+          exit 1
+        }
+        [[ -f "$vrml_file" && -s "$vrml_file" ]] || {
+          echo "[ERROR] El archivo WRL no es válido o está vacío: $vrml_file" >&2
+          exit 1
+        }
+        [[ "${vrml_file,,}" == *.wrl ]] || {
+          echo "[ERROR] El archivo debe tener extensión .wrl" >&2
+          exit 1
+        }
+
+        port_mapping="$(docker port "$container_name" 6080/tcp 2>/dev/null | head -n 1)"
+        [[ -n "$port_mapping" ]] || {
+          echo "[ERROR] '$container_name' no publica el puerto 6080 del visor." >&2
+          echo "        Cree un contenedor nuevo con ./meiga-school install." >&2
+          exit 1
+        }
+        host_port="${port_mapping##*:}"
+        [[ "$host_port" =~ ^[1-9][0-9]*$ ]] || {
+          echo "[ERROR] No se pudo determinar el puerto local del visor." >&2
+          exit 1
+        }
+
+        docker exec "$container_name" mkdir -p /tmp/meiga-viewer/input
+        docker cp "$vrml_file" \
+          "$container_name:/tmp/meiga-viewer/input/visualization.wrl" >/dev/null
+        docker exec "$container_name" meiga-viewer start \
+          /tmp/meiga-viewer/input/visualization.wrl
+        echo
+        echo "[OK] Abra el visor 3D en su navegador:"
+        echo "     http://localhost:${host_port}/vnc.html?autoconnect=true&resize=scale"
+        ;;
+    esac
     ;;
   run)
     campaign="${2:-}"

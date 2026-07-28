@@ -4,9 +4,10 @@ set -Eeuo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
 
-IMAGE="${MEIGA_IMAGE:-rmartinezmaple/meiga-school:3.3-g4gro}"
+IMAGE="${MEIGA_IMAGE:-rmartinezmaple/meiga-school:3.4-g4gro-viewer}"
 CONTAINER_NAME="${MEIGA_CONTAINER:-meiga_school}"
 BUILD_JOBS="${MEIGA_BUILD_JOBS:-2}"
+VIEWER_PORT="${MEIGA_VIEWER_PORT:-6080}"
 IMAGE_MODE="auto"
 FORCE_BUILD=0
 INSTALL_PYTHON=1
@@ -20,9 +21,10 @@ Uso: ./meiga-school install [opciones]
 Instala herramientas básicas, el entorno Python, la imagen y el contenedor.
 
 Opciones:
-  --image REFERENCIA   Imagen (default: rmartinezmaple/meiga-school:3.3-g4gro).
+  --image REFERENCIA   Imagen (default: rmartinezmaple/meiga-school:3.4-g4gro-viewer).
   --container NOMBRE   Nombre del contenedor (default: meiga_school).
   --jobs N             Núcleos para compilar Geant4/MEIGA (default: 2).
+  --viewer-port N      Puerto local del visor 3D (default: 6080).
   --pull               Exige descargar --image; no usa el respaldo local.
   --build              Construye desde fuente en lugar de descargar.
   --force-build        Reconstruye la imagen aunque ya exista.
@@ -30,8 +32,8 @@ Opciones:
   --skip-system-deps   No intenta instalar Git, Python ni Docker.
   -h, --help           Muestra esta ayuda.
 
-Variables equivalentes: MEIGA_IMAGE, MEIGA_CONTAINER, MEIGA_BUILD_JOBS y
-MEIGA_AUTO_INSTALL_SYSTEM (0 desactiva la instalación de paquetes).
+Variables equivalentes: MEIGA_IMAGE, MEIGA_CONTAINER, MEIGA_BUILD_JOBS,
+MEIGA_VIEWER_PORT y MEIGA_AUTO_INSTALL_SYSTEM (0 desactiva paquetes).
 EOF
 }
 
@@ -40,6 +42,7 @@ while (($#)); do
     --image) IMAGE="${2:?Falta REFERENCIA}"; shift 2 ;;
     --container) CONTAINER_NAME="${2:?Falta NOMBRE}"; shift 2 ;;
     --jobs) BUILD_JOBS="${2:?Falta N}"; shift 2 ;;
+    --viewer-port) VIEWER_PORT="${2:?Falta N}"; shift 2 ;;
     --pull) IMAGE_MODE="pull"; shift ;;
     --build) IMAGE_MODE="build"; shift ;;
     --force-build) IMAGE_MODE="build"; FORCE_BUILD=1; shift ;;
@@ -58,6 +61,11 @@ done
   echo "[ERROR] Nombre de contenedor no válido: $CONTAINER_NAME" >&2
   exit 2
 }
+[[ "$VIEWER_PORT" =~ ^[1-9][0-9]*$ ]] &&
+  ((VIEWER_PORT >= 1024 && VIEWER_PORT <= 65535)) || {
+    echo "[ERROR] --viewer-port debe estar entre 1024 y 65535" >&2
+    exit 2
+  }
 
 if [[ "$(uname -s)" != "Linux" ]]; then
   echo "[ERROR] Ejecute este instalador desde Linux o WSL2." >&2
@@ -160,10 +168,20 @@ if docker container inspect "$CONTAINER_NAME" >/dev/null 2>&1; then
     exit 1
   fi
   echo "[INFO] Reutilizando el contenedor existente: $CONTAINER_NAME"
+  viewer_mapping="$(docker port "$CONTAINER_NAME" 6080/tcp 2>/dev/null || true)"
+  if [[ "$viewer_mapping" != "127.0.0.1:${VIEWER_PORT}" ]]; then
+    echo "[ERROR] El contenedor existente no usa el puerto solicitado para el visor." >&2
+    echo "        Actual: ${viewer_mapping:-sin publicar}; solicitado: 127.0.0.1:${VIEWER_PORT}" >&2
+    echo "        Se conservó intacto. Cree otro contenedor, por ejemplo:" >&2
+    echo "        ./meiga-school install --container ${CONTAINER_NAME}_viewer" >&2
+    exit 1
+  fi
 else
   docker create \
     --name "$CONTAINER_NAME" \
+    --init \
     --label "org.meiga-school.managed=true" \
+    --publish "127.0.0.1:${VIEWER_PORT}:6080" \
     "$IMAGE" >/dev/null
   echo "[OK] Contenedor creado: $CONTAINER_NAME"
 fi

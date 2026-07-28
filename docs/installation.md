@@ -85,11 +85,11 @@ La imagen pública predeterminada es:
 ```bash
 ./meiga-school install \
   --pull \
-  --image rmartinezmaple/meiga-school:3.3-g4gro
+  --image rmartinezmaple/meiga-school:3.4-g4gro-viewer
 ```
 
 También se pueden fijar estos valores mediante `MEIGA_IMAGE`,
-`MEIGA_CONTAINER` y `MEIGA_BUILD_JOBS`.
+`MEIGA_CONTAINER`, `MEIGA_BUILD_JOBS` y `MEIGA_VIEWER_PORT`.
 
 ## Qué instala el comando
 
@@ -101,8 +101,9 @@ También se pueden fijar estos valores mediante `MEIGA_IMAGE`,
 4. crea `.venv` e instala las dependencias exactas del análisis;
 5. descarga o reutiliza la imagen precompilada desde Docker Hub;
 6. si hace falta, construye Geant4 10.7.4, Hodoscopio, Torre, WCD y G4GRO;
-7. crea e inicia el contenedor `meiga_school`;
-8. verifica que el ejecutable WCD esté disponible.
+7. crea el contenedor `meiga_school` y publica el visor solamente en
+   `127.0.0.1:6080`;
+8. verifica que el ejecutable WCD y el visor 3D estén disponibles.
 
 El proceso es idempotente y no elimina contenedores, imágenes ni resultados.
 En sistemas administrados donde no deba instalar paquetes, utilice
@@ -123,6 +124,20 @@ La imagen incluye `nano`, `vim`, `vi` y `less`. Abra una terminal Bash en
 
 Para salir sin detener el contenedor, ejecute `exit`. Si seleccionó otro nombre
 durante la instalación, use `./meiga-school shell --container NOMBRE`.
+
+## Visor 3D
+
+Cada campaña produce `visualization.wrl`. Para verlo desde Chrome, Firefox o
+Edge:
+
+```bash
+latest_run="$(ls -dt results/runs/* | head -1)"
+./meiga-school view "$latest_run/run/visualization.wrl"
+```
+
+Abra la dirección que imprime el comando. Detenga el servicio con
+`./meiga-school view --stop`. El servidor VNC interno no se publica
+directamente y noVNC queda limitado al `localhost` del equipo.
 
 ## Contenedor con el mismo nombre
 

@@ -2,7 +2,7 @@
 set -Eeuo pipefail
 
 PREFIX="/opt/meiga-school/external/G4GROSimulator"
-VENDOR="$PREFIX/vendor/Escuela/G4GROSimulator"
+VENDOR="$PREFIX/vendor/current/G4GROSimulator"
 EXECUTABLE="$PREFIX/build/Applications/G4GROSimulator/G4GROSimulator"
 MODE="${1:-smoke}"
 RUN_ID="${2:-$(date -u +%Y%m%dT%H%M%SZ)-$MODE}"

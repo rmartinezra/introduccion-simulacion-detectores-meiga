@@ -6,8 +6,8 @@ ARG GEANT4_SOURCE_SHA256=602b41dfee1fa6b33b026d00c5bd940155d7e5d0b3495230a87e2a2
 ARG BUILD_JOBS=2
 
 LABEL org.opencontainers.image.title="MEIGA School"
-LABEL org.opencontainers.image.version="3.3"
-LABEL org.opencontainers.image.description="Self-contained MEIGA detector course with Geant4 10.7.4, WCD campaigns and isolated G4GRO"
+LABEL org.opencontainers.image.version="3.4"
+LABEL org.opencontainers.image.description="Self-contained MEIGA detector course with Geant4 10.7.4, WCD campaigns, isolated G4GRO and browser-based VRML visualization"
 LABEL org.opencontainers.image.source="https://github.com/rmartinezra/introduccion-simulacion-detectores-meiga"
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -100,21 +100,32 @@ COPY experiments/wcd/bariloche-5min/input/bariloche_5min.shw /opt/meiga-school/d
 COPY experiments/wcd/flux-30s /opt/meiga-school/campaigns/wcd-flux-30s
 COPY experiments/wcd/bariloche-5min /opt/meiga-school/campaigns/wcd-bariloche-5min
 COPY external-apps/g4gro /tmp/g4gro
+COPY container/viewer.sh /usr/local/bin/meiga-viewer
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
+      fluxbox \
       less \
       nano \
       nlohmann-json3-dev \
-      vim && \
+      novnc \
+      unzip \
+      view3dscene \
+      vim \
+      websockify \
+      x11vnc \
+      xvfb && \
+    chmod 0755 /usr/local/bin/meiga-viewer && \
     rm -rf /var/lib/apt/lists/* && \
     sha256sum /opt/meiga-school/data/bariloche_5min.shw | \
       grep -qi '^db4f9e09a2b43898faffc7fea3446cba072777ff3cf9bb6ebe79296da56ced66 ' && \
     BUILD_JOBS="${BUILD_JOBS}" \
       bash /tmp/g4gro/integration/install-g4gro.sh \
-      /tmp/g4gro/original/Escuela.tar.gz && \
+      /tmp/g4gro/original/Escuela.tar.gz \
+      /tmp/g4gro/original/G4GROSimulator.zip && \
     rm -rf /tmp/g4gro
 
+EXPOSE 6080
 WORKDIR /workspace
 ENTRYPOINT []
 CMD ["sleep", "infinity"]

@@ -1,7 +1,7 @@
 # Contenedor autónomo
 
 `Dockerfile` construye
-`rmartinezmaple/meiga-school:3.3-g4gro` sin depender de una imagen MEIGA local.
+`rmartinezmaple/meiga-school:3.4-g4gro-viewer` sin depender de una imagen MEIGA local.
 Parte de `ubuntu:22.04` e instala:
 
 - Geant4 10.7.4 y sus conjuntos de datos;
@@ -9,6 +9,7 @@ Parte de `ubuntu:22.04` e instala:
 - Hodoscopio, Torre y WCD;
 - las campañas WCD de 30 segundos y 5 minutos;
 - G4GRO en un árbol privado;
+- `view3dscene`, Xvfb y noVNC para visualizar los WRL desde el navegador;
 - `nano`, `vim`, `vi` y `less` para trabajar dentro del contenedor;
 - fuentes, CMake, `make` y `g++` para recompilar.
 
@@ -19,8 +20,8 @@ Desde la raíz:
 ```bash
 docker build \
   --file container/Dockerfile \
-  --tag rmartinezmaple/meiga-school:3.3-g4gro \
-  --tag meiga_school:3.3-g4gro \
+  --tag rmartinezmaple/meiga-school:3.4-g4gro-viewer \
+  --tag meiga_school:3.4-g4gro-viewer \
   --build-arg BUILD_JOBS=2 \
   .
 ```
@@ -42,7 +43,9 @@ La imagen declara `CMD ["sleep", "infinity"]`; por ello no necesita un
 ```bash
 docker create \
   --name meiga_school \
-  rmartinezmaple/meiga-school:3.3-g4gro
+  --init \
+  --publish 127.0.0.1:6080:6080 \
+  rmartinezmaple/meiga-school:3.4-g4gro-viewer
 docker start meiga_school
 ```
 
@@ -52,7 +55,7 @@ La construcción falla si no coinciden:
 
 - el SHA-256 del código fuente Geant4 10.7.4;
 - el SHA-256 de `meiga-school-source.tar.gz`;
-- el SHA-256 del paquete original G4GRO;
+- los SHA-256 de los paquetes legado y actualizado de G4GRO;
 - el SHA-256 del flujo WCD de 5 minutos.
 
 La procedencia de la instantánea MEIGA está descrita en
@@ -64,6 +67,13 @@ WCD y análisis desde el anfitrión:
 
 ```bash
 ./meiga-school run wcd-30s --smoke 60
+```
+
+Visor 3D de la última corrida:
+
+```bash
+latest_run="$(ls -dt results/runs/* | head -1)"
+./meiga-school view "$latest_run/run/visualization.wrl"
 ```
 
 Terminal interactiva con los editores incluidos:

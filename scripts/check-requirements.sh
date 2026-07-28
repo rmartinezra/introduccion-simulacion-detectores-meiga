@@ -3,7 +3,7 @@ set -u
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
-IMAGE="${MEIGA_IMAGE:-rmartinezmaple/meiga-school:3.3-g4gro}"
+IMAGE="${MEIGA_IMAGE:-rmartinezmaple/meiga-school:3.4-g4gro-viewer}"
 CONTAINER_NAME="${MEIGA_CONTAINER:-meiga_school}"
 VENV_PYTHON="$PROJECT_ROOT/.venv/bin/python"
 
@@ -82,10 +82,16 @@ if command -v docker >/dev/null 2>&1; then
     if [[ "$(docker inspect -f '{{.State.Running}}' "$CONTAINER_NAME")" != "true" ]]; then
       echo "[WARN] Container      $CONTAINER_NAME existe, pero está detenido"
       warnings=$((warnings + 1))
-    elif docker exec "$CONTAINER_NAME" \
-      test -x /opt/meiga-school/G4WCDSimulator/G4WCDSimulator \
-      >/dev/null 2>&1; then
-      echo "[OK]   Container      $CONTAINER_NAME con WCD"
+    elif docker exec "$CONTAINER_NAME" bash -lc \
+      'test -x /opt/meiga-school/G4WCDSimulator/G4WCDSimulator &&
+       test -x /usr/local/bin/meiga-viewer' >/dev/null 2>&1; then
+      echo "[OK]   Container      $CONTAINER_NAME con WCD y visor 3D"
+      if viewer_mapping="$(docker port "$CONTAINER_NAME" 6080/tcp 2>/dev/null)"; then
+        echo "[OK]   Viewer port    ${viewer_mapping//$'\n'/, }"
+      else
+        echo "[FAIL] Viewer port    el contenedor no publica 6080/tcp"
+        failures=$((failures + 1))
+      fi
     else
       echo "[FAIL] Container      $CONTAINER_NAME no contiene el WCD esperado"
       failures=$((failures + 1))

@@ -7,6 +7,7 @@ import hashlib
 import subprocess
 import tarfile
 import unittest
+import zipfile
 from pathlib import Path
 
 
@@ -23,6 +24,7 @@ class InstallationTests(unittest.TestCase):
             ROOT / "scripts" / "check-requirements.sh",
             ROOT / "scripts" / "run-wcd-campaign.sh",
             ROOT / "container" / "install-meiga-school.sh",
+            ROOT / "container" / "viewer.sh",
             ROOT
             / "external-apps"
             / "g4gro"
@@ -42,6 +44,7 @@ class InstallationTests(unittest.TestCase):
         )
         self.assertIn("./meiga-school install", result.stdout)
         self.assertIn("./meiga-school shell", result.stdout)
+        self.assertIn("./meiga-school view ARCHIVO.wrl", result.stdout)
         self.assertIn("./meiga-school run wcd-30s --smoke 60", result.stdout)
 
     def test_cli_documents_interactive_container_access(self) -> None:
@@ -125,15 +128,29 @@ class InstallationTests(unittest.TestCase):
         self.assertIn("FROM ubuntu:22.04", dockerfile)
         self.assertNotIn("FROM ${BASE_IMAGE}", dockerfile)
         self.assertNotIn("meiga_school:3.0", dockerfile)
-        self.assertIn('org.opencontainers.image.version="3.3"', dockerfile)
+        self.assertIn('org.opencontainers.image.version="3.4"', dockerfile)
         self.assertIn("nlohmann-json3-dev", dockerfile)
         for editor in ("less", "nano", "vim"):
             with self.subTest(editor=editor):
                 self.assertRegex(dockerfile, rf"(?m)^\s+{editor}(?:\s|\\)")
         self.assertIn('CMD ["sleep", "infinity"]', dockerfile)
+        self.assertIn("EXPOSE 6080", dockerfile)
+        for viewer_package in (
+            "fluxbox",
+            "novnc",
+            "view3dscene",
+            "websockify",
+            "x11vnc",
+            "xvfb",
+        ):
+            with self.subTest(viewer_package=viewer_package):
+                self.assertRegex(
+                    dockerfile,
+                    rf"(?m)^\s+{viewer_package}(?:\s|\\)",
+                )
 
-    def test_default_image_is_the_versioned_3_3_release(self) -> None:
-        expected = "rmartinezmaple/meiga-school:3.3-g4gro"
+    def test_default_image_is_the_versioned_3_4_release(self) -> None:
+        expected = "rmartinezmaple/meiga-school:3.4-g4gro-viewer"
         for path in (
             ROOT / "scripts" / "install.sh",
             ROOT / "scripts" / "check-requirements.sh",
@@ -142,26 +159,76 @@ class InstallationTests(unittest.TestCase):
                 contents = path.read_text(encoding="utf-8")
                 self.assertIn(expected, contents)
                 self.assertNotIn(
-                    "rmartinezmaple/meiga-school:3.2-g4gro",
+                    "rmartinezmaple/meiga-school:3.3-g4gro",
                     contents,
                 )
+
+    def test_viewer_is_local_only_and_uses_scoped_processes(self) -> None:
+        viewer = (ROOT / "container" / "viewer.sh").read_text(encoding="utf-8")
+        installer = (ROOT / "scripts" / "install.sh").read_text(encoding="utf-8")
+        cli = (ROOT / "meiga-school").read_text(encoding="utf-8")
+        self.assertIn("-localhost", viewer)
+        self.assertNotIn("pkill", viewer)
+        self.assertIn('--publish "127.0.0.1:${VIEWER_PORT}:6080"', installer)
+        self.assertIn("docker cp", cli)
+        self.assertIn("meiga-viewer start", cli)
 
     def test_applications_use_a_compatible_serial_run_manager(self) -> None:
         school_installer = (
             ROOT / "container" / "install-meiga-school.sh"
         ).read_text(encoding="utf-8")
-        g4gro_patch = (
+        g4gro_archive = (
             ROOT
             / "external-apps"
             / "g4gro"
-            / "integration"
-            / "meiga-isolation.patch"
-        ).read_text(encoding="utf-8")
+            / "original"
+            / "G4GROSimulator.zip"
+        )
         serial_factory = (
             "G4RunManagerFactory::CreateRunManager(G4RunManagerType::Serial)"
         )
         self.assertIn(serial_factory, school_installer)
-        self.assertIn(serial_factory, g4gro_patch)
+        with zipfile.ZipFile(g4gro_archive) as package:
+            g4gro_source = package.read(
+                "G4GROSimulator/G4GROSimulator.cc"
+            ).decode("utf-8")
+        self.assertIn(serial_factory, g4gro_source)
+
+    def test_current_g4gro_package_is_verified_and_unmodified(self) -> None:
+        archive = (
+            ROOT
+            / "external-apps"
+            / "g4gro"
+            / "original"
+            / "G4GROSimulator.zip"
+        )
+        digest = hashlib.sha256(archive.read_bytes()).hexdigest()
+        self.assertEqual(
+            digest,
+            "9ddfa1f41ce66ee7deaf837c2c420d7b290ce21d44d08fa10741f1b6f2971f68",
+        )
+        with zipfile.ZipFile(archive) as package:
+            names = package.namelist()
+            construction = package.read(
+                "G4GROSimulator/G4GROConstruction.cc"
+            ).decode("utf-8")
+            header = package.read(
+                "G4GROSimulator/G4GROConstruction.h"
+            ).decode("utf-8")
+        self.assertFalse(any(name.startswith(("/", "../")) for name in names))
+        self.assertIn("Materials().SoilBH50", construction)
+        self.assertIn("fWorldSizeX = 40 *CLHEP::m", header)
+
+    def test_g4gro_vendor_is_read_only_and_private_source_is_editable(self) -> None:
+        installer = (
+            ROOT
+            / "external-apps"
+            / "g4gro"
+            / "integration"
+            / "install-g4gro.sh"
+        ).read_text(encoding="utf-8")
+        self.assertIn('chmod -R a-w "$VENDOR_DIR"', installer)
+        self.assertIn('chmod -R u+w "$SOURCE_DIR"', installer)
 
     def test_meiga_source_snapshot_is_clean_and_verified(self) -> None:
         archive = ROOT / "container" / "meiga-school-source.tar.gz"

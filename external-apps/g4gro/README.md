@@ -1,8 +1,11 @@
 # Isolated G4GRO integration
 
-This directory contains the original compressed package and the isolated
-integration artifacts. The colleague's application is kept byte-for-byte under
-the container's `vendor/Escuela` directory. It is not edited.
+This directory contains the original compressed packages and the isolated
+integration artifacts. The colleague's current application is kept
+byte-for-byte under the container's `vendor/current` directory. It is not
+edited. The earlier `Escuela` package remains under `vendor/legacy` only
+because it supplies the custom materials and physics list that were not
+included again in the current application package.
 
 The isolated build uses:
 
@@ -10,8 +13,8 @@ The isolated build uses:
 - the original `Materials.cc` and `G4MPhysicsList.cc` supplied in the archive;
 - a small header-only compatibility patch declaring the supplied soil and
   brine materials;
-- a localized serial run-manager selection because the supplied application
-  registers its Geant4 user actions through the sequential interface;
+- the serial run-manager selection now supplied directly by the application
+  author;
 - a private fix to the copied MEIGA configuration template so its generated
   header exposes the explicit Tyvek setting required by the teaching tree;
 - a separate CMake build directory and runtime directory.
@@ -23,7 +26,8 @@ course simulators is changed.
 
 ```text
 /opt/meiga-school/external/G4GROSimulator/
-├── vendor/Escuela/       original package, read-only
+├── vendor/current/       current author package, read-only
+├── vendor/legacy/        legacy custom materials and physics, read-only
 ├── meiga-source/         private MEIGA source copy plus integration shims
 ├── build/                private CMake build
 ├── runtime/              integration configuration
@@ -47,9 +51,9 @@ Modes:
 
 ## Edit and rebuild G4GRO
 
-Edit only the private working copy under `meiga-source`. Do not edit
-`vendor/Escuela`: it is the read-only, byte-for-byte copy of the colleague's
-original package.
+Edit only the private working copy under `meiga-source`. Do not edit either
+vendor directory: they are read-only, byte-for-byte copies of the colleague's
+packages.
 
 Open a shell in the running container:
 
